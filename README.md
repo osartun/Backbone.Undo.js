@@ -27,7 +27,7 @@ Backbone.Undo.js is very simple to handle. It's made to *just work*. However thi
 
 *   Made for the user
 
-    If you're using a shortcut-library you can bind shortcuts which call `undo()` or `redo()` to undo/redo an action.
+    If you're using a shortcut-library you can bind shortcuts which call `undo()` or `redo()` to undo/redo an action. It's incredibly easy.
     
 ## Getting started
 
