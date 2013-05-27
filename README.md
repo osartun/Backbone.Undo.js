@@ -5,12 +5,12 @@ An extremely simple Undo-Manager for Backbone.js
 
 ### Advantages of Backbone.Undo.js
 
-*   Easy to include **and exclude**
+*   Easy to include and exclude
 
     In comparison to other Backbone-based undo-managers like *memento*, you don't have to modify your models 
     or collections to use Backbone.Undo.js. You can have your whole application already set up with all the 
     models and collections and then add the undo-manager. That makes it easy to not only include 
-    Backbone.Undo.js, but also to remove it again.
+    Backbone.Undo.js, but also to remove it again if you don't longer want to use it at some point.
     
 *   Uses Backbone-Events
 
