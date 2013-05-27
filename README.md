@@ -3,36 +3,37 @@ Backbone.Undo.js
 
 An extremely simple Undo-Manager for Backbone.js
 
-## Is this the right Undo-Manager for me?
-
-Backbone.Undo.js is very simple to handle. It's made to *just work*. However this simplicity can also have downsides as it might not be suitable for a very complex application.
-
 ### Advantages of Backbone.Undo.js
 
 *   Easy to include **and exclude**
 
-    In comparison to other Backbone-based undo-managers like *Backbone.memento*, you don't have to modify your models or collections to use Backbone.Undo.js. That makes it easy to not only include Backbone.Undo.js, but also to remove it again.
+    In comparison to other Backbone-based undo-managers like *memento*, you don't have to modify your models 
+    or collections to use Backbone.Undo.js. You can have your whole application already set up with all the 
+    models and collections and then add the undo-manager. That makes it easy to not only include 
+    Backbone.Undo.js, but also to remove it again.
     
 *   Uses Backbone-Events
 
-    To detect an action, Backbone.Undo.js listens to the events Backbone triggeres automatically. You don't have to do anything. You don't have to `store()` or `restore()` certain states. Nothing.
+    To detect an action, Backbone.Undo.js listens to the events Backbone triggeres automatically. You don't have 
+    to do anything. You don't have to `store()` or `restore()` certain states. Nothing.
 
 *   Memory-friendly
 
     Backbone.Undo.js only stores changes, instead of snapshots (clones of models/collections).
 
-*   Detects connected actions
+*   Optimized for Usability
    
-    In a sophisticated webapp one click of the user might trigger several Backbone-Events which are stored as several Undo-Actions within the Undo-Stack. If the user then calls `undo()` it shouldn't just undo the latest action, it should undo all the actions which were triggered by the user's click. Backbone.Undo.js has a way to figure out which actions belong together and then undoes/redoes all of them.
-
-*   Made for the user
-
-    If you're using a shortcut-library you can bind shortcuts which call `undo()` or `redo()` to undo/redo an action. It's incredibly easy.
-    
+    In a sophisticated webapp one click of the user might trigger several Backbone-Events which are stored as 
+    several Undo-Actions within the Undo-Stack. If the user then calls `undo()` it shouldn't just undo the latest 
+    action, it should undo all the actions which were triggered by the user's click. Backbone.Undo.js has a way to 
+    figure out which actions belong together and then undoes/redoes all of them.
+ 
 ## Getting started
 
-Like with all the other JavaScript-Libraries you only need to include Backbone.Undo.js into your webpage or webapp to make it available.
-As Backbone.Undo.js depends on Backbone you need Backbone, which again depends on underscore.js (or lowdash.js) and jQuery (or zepto). Make sure to include all these files before Backbone.Undo.js as it relies on these libraries:
+Like with all the other JavaScript-Libraries you only need to include Backbone.Undo.js into your webpage or webapp 
+to make it available.
+As Backbone.Undo.js depends on Backbone you need Backbone, which again depends on underscore.js (or lowdash.js) and 
+jQuery (or zepto). Make sure to include all these files before Backbone.Undo.js as it relies on these libraries:
   
     <script src="jquery.js"></script>
     <script src="underscore.js"></script>
@@ -75,18 +76,70 @@ In order to set up you UndoManager you have to do the following steps:
     // 3. Start tracking the changes
     myUndoManager.startTracking(); // Everything that happens from now on, can be undone
     
-`startTracking()` is not part of the register function, to initialize
+# Undo or Redo Actions
 
-### Problems that might occur
+To undo the last set of actions, just call `undo()`
 
-Backbone.Undo.js is not made to be called within your code. It has an internal mechanism which figures out which Undo-Actions were generated in the same call cycle. 
-This mechanism is great for usability (see Advantages). However this mechanism makes it impossible to call `undo()` or `redo()` within a codeblock. Imagine this:
+    myUndoManager.undo();
     
-    var UndoManager = new Backbone.Undo;
-    var model = new Backbone.Model({"foo":1});
-    UndoManager.register(model);
-    UndoManager.startTracking();
-    model.set("foo", 2);
-    model.set("foo", 3);
-    UndoManager.undo();
-    model.get("foo"); // Is 1 instead of 2
+To redo undone actions, call `redo()`
+
+    myUndoManager.redo();
+
+### Problems that may occur
+
+Backbone.Undo.js is not made to be called within your code. It has an internal mechanism which figures out 
+which Undo-Actions were generated in the same call cycle. 
+This mechanism is great for usability (see above, *Advantages of Backbone.Undo.js*). However this mechanism 
+makes it impossible to call `undo()` or `redo()` within a codeblock. Imagine this:
+    
+    model.get("foo"); // "bar"
+    
+    // Several changes:
+    model.set("foo", "baz");
+    model.set("foo", "qux");
+    model.set("foo", 42);
+    model.set("foo", {})
+    
+    // One call to `undo`:
+    myUndoManager.undo();
+    model.get("foo"); // Is "bar" instead of 42
+    
+Calling `undo()` resets `"foo"` to `"bar"` instead of `42`, because it had figured out that the four `set`s happened in 
+one call cycle.
+If you want to call `undo()` within your code and each time only want to undo the latest change you have to call the 
+changes to the model asynchronously.
+
+    model.get("foo");
+    
+    // Several changes:
+    _.defer(function () {
+        model.set("foo", "baz");
+        
+        _.defer(function () {
+            model.set("foo", "qux");
+            
+            _.defer(function () {
+                model.set("foo", 42);
+                
+                _.defer(function () {
+                    model.set("foo", {});
+                    
+                    myUndoManager.undo();
+                    model.get("foo") // 42
+                    
+                    myUndoManager.undo();
+                    model.get("foo") // "qux"
+                    
+                    myUndoManager.undo();
+                    model.get("foo") // "baz"
+                    
+                    myUndoManager.undo();
+                    model.get("foo") // "bar"
+                })
+            })
+        })
+    })
+    
+Obviously noone would ever do that. In fact you also shouldn't do that: Your webapp shouldn't have any reference to the 
+undo-manager within your code. Try to develop it independently from the undo-manager.
