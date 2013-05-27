@@ -50,8 +50,6 @@ Backbone.Undo.js was developed for Backbone 1.0.0 or higher.
 
 Backbone.Undo.js was developed for Underscore 1.4.4 or higher.
 
-## Integrating the UndoManager into your webpage / webapp
-
 # Setting up your UndoManager
 
 In order to set up you UndoManager you have to do the following steps:
