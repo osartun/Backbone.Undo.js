@@ -19,7 +19,7 @@ Backbone.Undo.js is very simple to handle. It's made to *just work*. However thi
 
 *   Memory-friendly
 
-    Backbone.Undo.js only stores the changes, instead of snapshots (clones of models/collections).
+    Backbone.Undo.js only stores changes, instead of snapshots (clones of models/collections).
 
 *   Detects connected actions
    
