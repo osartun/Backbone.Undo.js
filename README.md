@@ -70,16 +70,109 @@ In order to set up you UndoManager you have to do the following steps:
     
     // 3. Start tracking the changes
     myUndoManager.startTracking(); // Everything that happens from now on, can be undone
+
+## Backbone.Undo.js methods
+
+Methods you can call on an instance of Backbone.Undo:
+
+### Constructor
+
+    new Backbone.Undo([object]);
+
+The constructor can be called with an optional argument. The argument is an object of attributes. So far only the 
+attribute `maximumStackLength` is supported.
+
+    var undoManager = new Backbone.Undo; // possible, because arguments are optional
+    var undoManager = new Backbone.Undo({
+        maximumStackLength: 30
+    });
+
+The attribute `maximumStackLength` defines how many undo-actions should be in the undo-stack at the utmost, which means
+how many actions are undoable. The default value is `Infinity` so there's  no limit at all.
+
+### register
+
+    undoManager.register(obj, [obj, ...]);
+
+Your undo-instance must know the object on which actions should be undone/redone. Therefore you have to register these
+objects:
+
+    var model = new Backbone.Model;
+    var collection = new Backbone.Collection;
+    undoManager.register(model, collection);
+
+The register-method doesn't check whether the object is an instance of Backbone.Model or Backbone.Collection. That makes
+it possible to bind other objects which don't derive from Backbone constructors and yet have `on()` and `off()` methods
+and trigger an `"all"` event.
+
+### unregister
+
+    undoManager.unregister(obj, [obj, ...]);
+
+Previously registered objects can be unregistered using the `unregister()` method. Changes to those objects can't be
+undone after they have been unregsitered.
+
+    var myModel = new Backbone.Model;
+    undoManager.register(myModel);
+    undoManager.startTracking();
+    myModel.set("foo", "bar"); // Can be undone
+    undoManager.unregister(myModel);
+    myModel.set("foo", "baz"); // Can't be undone
+
+### startTracking
     
-## Undo or Redo Actions
+    undoManager.startTracking();
 
-To undo the last set of actions, just call `undo()`
+Your undo-manager won't store any changes that happen to registered objects until you called `startTracking()`.
 
-    myUndoManager.undo();
+    var myModel = new Backbone.Model;
+    undoManager.register(myModel);
+    myModel.set("foo", "bar"); // Can't be undone because tracking changes didn't start yet
+    undoManager.startTracking();
+    myModel.set("foo", "baz"); // Can be undone
+
+### stopTracking
+
+    undoManager.stopTracking();
     
-To redo undone actions, call `redo()`
+If you want to stop tracking changes for whatever reason, you can do that by calling `stopTracking()`
 
-    myUndoManager.redo();
+    myModel.set("foo", 1);
+    undoManager.startTracking();
+    myModel.set("foo", 2);
+    undoManager.stopTracking();
+    myModel.set("foo", 3);
+    undoManager.undo(); // "foo" is 1 instead of 2, because the last change wasn't tracked
+    // btw: You shouldn't call `undo` within your code. See 'Problems that may occur'
+
+### undo
+
+    undoManager.undo();
+    
+The method to undo the last set of actions is `undo()`. It undoes all actions that happened within one call cycle. That's
+why you shouldn't and can't call `undo()` within your code to undo actions. See 'Problems that may occur' for more 
+information.
+
+### redo
+
+    undoManager.redo();
+    
+The method to redo an undone set of actions is `redo()`. Like `undo()` it redoes all actions that happened within 
+one call cycle. See 'Problems that may occur' for more information.
+
+## Supported Events
+
+Backbone.Undo.js uses Backbone-Events to generate the undo-actions. It has built-in support for the following events
+
+*   `add` When a model is added to a collection
+*   `remove` When a model is removed from a collection
+*   `reset` When a collection is reset and all models are replaced by new models (or no models) at once
+*   `change` When an attribute of a model was changed
+
+### Supporting other events
+
+If you want to generate undo-actions when other Backbone- or custom events are triggered, you can do so by extending
+Backbone.Undo.
 
 ### Problems that may occur
 
@@ -139,26 +232,3 @@ changes to the model asynchronously.
 Obviously noone would ever do that. In fact you also shouldn't do that: Your webapp shouldn't have any reference to the 
 undo-manager within your code. Try to develop it independently from the undo-manager and then add an 
 undo-manager-controller which for example binds the undo/redo-calls to Shortcuts like ctrl+Z.
-
-## Backbone.Undo.js methods
-
-Methods you can call on an instance of Backbone.Undo:
-
-### Constructor
-
-The constructor can be called with an optional argument. The argument is an object of attributes. So far only the 
-attribute `maximumStackLength` is supported.
-
-    var undoManager = new Backbone.Undo; // possible, because arguments are optional
-    undoManager = new Backbone.Undo({
-        maximumStackLength: 30
-    });
-
-The attribute `maximumStackLength` defines how many undo-actions should be in the undo-stack at the utmost, which means
-how many actions are undoable. The default value is `Infinity` so there's  no limit at all.
-
-### startTracking
-
-Your undo-manager won't store any changes that happen to registered objects until you called startTracking:
-
-    undoManager.startTracking()
