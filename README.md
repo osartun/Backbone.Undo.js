@@ -9,7 +9,7 @@ An extremely simple Undo-Manager for Backbone.js
 
     In comparison to other Backbone-based undo-managers like *memento*, you don't have to modify your models 
     or collections to use Backbone.Undo.js. You can have your whole application already set up with all the 
-    models and collections and then add the undo-manager. That makes it easy to not only include 
+    models and collections you need and then add the undo-manager. That makes it easy to not only include 
     Backbone.Undo.js, but also to remove it again if you don't longer want to use it at some point.
     
 *   Uses Backbone-Events
