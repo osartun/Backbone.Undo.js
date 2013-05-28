@@ -212,6 +212,21 @@
 				};
 			}
 		},
+		"reset": {
+			"undo": function (collection, before, after) {
+				collection.reset(before);
+			},
+			"redo": function (collection, before, after) {
+				collection.reset(after);
+			},
+			"on": function (collection, options) {
+				return {
+					object: collection,
+					before: options.previousModels,
+					after: _.clone(collection.models)
+				};
+			}
+		},
 		"change": {
 			"undo": function (model, before, after) {
 				if (_.isEmpty(before)) {
@@ -236,21 +251,6 @@
 					before: previousAttributes,
 					after: changedAttributes
 				}
-			}
-		},
-		"reset": {
-			"undo": function (collection, before, after) {
-				collection.reset(before);
-			},
-			"redo": function (collection, before, after) {
-				collection.reset(after);
-			},
-			"on": function (collection, options) {
-				return {
-					object: collection,
-					before: options.previousModels,
-					after: _.clone(collection.models)
-				};
 			}
 		}
 	},
