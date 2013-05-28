@@ -1,3 +1,12 @@
+/*!
+ * Backbone.Undo.js v0.1
+ * 
+ * Copyright (c)2013 Oliver Sartun
+ * Released under the MIT License
+ *
+ * Documentation and full license available at
+ * https://github.com/Bloli/Backbone.Undo.js
+ */
 (function (win, doc, $, _, Backbone, undefined) {
 
 	function apply (fn, ctx, args) {
