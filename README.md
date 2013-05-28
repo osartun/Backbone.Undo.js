@@ -195,12 +195,6 @@ To understand how this works you have to know the structure of an undo-type:
 An example. If we want to add the undo-type `"reset"` (which is already built-in) we can do the following:
 
     Backbone.Undo.addUndoType("reset", {
-        "undo": function (collection, before, after) {
-            collection.reset(before);
-        },
-        "redo": function (collection, before, after) {
-    		collection.reset(after);
-		},
         "on": function (collection, options) {
             // The "on" method gets the arguments the type (here: "reset") 
             // would get if it was bound to the object
@@ -209,8 +203,23 @@ An example. If we want to add the undo-type `"reset"` (which is already built-in
                 before: options.previousModels,
                 after: _.clone(collection.models) // We use a copy of the current state instead of storing a reference
             }
-        }
-    })
+        },
+        "undo": function (collection, before, after) {
+            // Reset the collection with the previous models 
+            collection.reset(before);
+        },
+        "redo": function (collection, before, after) {
+            collection.reset(after);
+         }
+    });
+    
+You can also define several undo-types by passing an object to `addUndoType`
+
+	Backbone.Undo.addUndoType({
+		"reset": {...},
+		"add": {...},
+		"customevent": {...}
+	});
 
 ## Problems that may occur
 
