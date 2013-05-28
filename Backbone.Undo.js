@@ -108,7 +108,7 @@
 		// Calls the undo/redo-function for a specific action
 		var type = attr.type, fn = !UndoTypes[type] || UndoTypes[type][which];
 		if (_.isFunction(fn)) {
-			fn(attr.object, attr.before, attr.after, attr);
+			fn(attr.object, attr.before, attr.after, _.clone(attr));
 		}
 	}
 
