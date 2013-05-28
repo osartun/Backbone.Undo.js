@@ -3,7 +3,7 @@ Backbone.Undo.js
 
 An extremely simple Undo-Manager for Backbone.js
 
-### Advantages of Backbone.Undo.js
+#### Advantages of Backbone.Undo.js
 
 *   Easy to include and exclude
 
@@ -75,7 +75,7 @@ In order to set up you UndoManager you have to do the following steps:
 
 Methods you can call on an instance of Backbone.Undo:
 
-### Constructor
+#### Constructor
 
     new Backbone.Undo([object]);
 
@@ -90,7 +90,7 @@ attribute `maximumStackLength` is supported.
 The attribute `maximumStackLength` defines how many undo-actions should be in the undo-stack at the utmost, which means
 how many actions are undoable. The default value is `Infinity` so there's  no limit at all.
 
-### register
+#### register
 
     undoManager.register(obj, [obj, ...]);
 
@@ -105,7 +105,7 @@ The register-method doesn't check whether the object is an instance of Backbone.
 it possible to bind other objects which don't derive from Backbone constructors and yet have `on()` and `off()` methods
 and trigger an `"all"` event.
 
-### unregister
+#### unregister
 
     undoManager.unregister(obj, [obj, ...]);
 
@@ -119,7 +119,7 @@ undone after they have been unregsitered.
     undoManager.unregister(myModel);
     myModel.set("foo", "baz"); // Can't be undone
 
-### startTracking
+#### startTracking
     
     undoManager.startTracking();
 
@@ -131,7 +131,7 @@ Your undo-manager won't store any changes that happen to registered objects unti
     undoManager.startTracking();
     myModel.set("foo", "baz"); // Can be undone
 
-### stopTracking
+#### stopTracking
 
     undoManager.stopTracking();
     
@@ -145,7 +145,7 @@ If you want to stop tracking changes for whatever reason, you can do that by cal
     undoManager.undo(); // "foo" is 1 instead of 2, because the last change wasn't tracked
     // btw: You shouldn't call `undo` within your code. See 'Problems that may occur'
 
-### undo
+#### undo
 
     undoManager.undo();
     
@@ -153,7 +153,7 @@ The method to undo the last set of actions is `undo()`. It undoes all actions th
 why you shouldn't and can't call `undo()` within your code to undo actions. See 'Problems that may occur' for more 
 information.
 
-### redo
+#### redo
 
     undoManager.redo();
     
@@ -171,10 +171,48 @@ Backbone.Undo.js uses Backbone-Events to generate the undo-actions. It has built
 
 ### Supporting other events
 
-If you want to generate undo-actions when other Backbone- or custom events are triggered, you can do so by extending
-Backbone.Undo.
+If you want to generate undo-actions when custom or other Backbone-events are triggered, you can do so by extending
+Backbone.Undo. Use the static method `Backbone.Undo.addUndoType()`:
 
-### Problems that may occur
+#### addUndoType
+
+    Backbone.Undo.addUndoType(type, callbacks);
+    // or
+    Backbone.Undo.addUndoType(types);
+
+An undo-type generates the data of an undo-action for a specific event and has an undo and redo method which know 
+how to undo and redo the action. With the `addUndoType()` method you can add or overwrite one or more of these undo-types.
+To understand how this works you have to know the structure of an undo-type:
+
+*   `type` is the name of the event the undo-type is made for. For example `"add"`, `"change"` or `"reset"`.
+*   `on` is the function that generates the data necessary to undo or redo the action. It returns an object with the keys 
+    `"object"`, `"before"` and `"after"`
+*   `undo` is the function which executes the actual undoing. It gets `object`, `before` and `after` the values `on` had
+    returned as arguments as well as a copy of the whole object `on` returned in case it needs more data.
+*   `redo` is the function which executes the actual redoing. As `undo` it gets `object`, `before`, `after` and a copy of
+    the object `on` returned as arguments.
+    
+An example. If we want to add the undo-type `"reset"` (which is already built-in) we can do the following:
+
+    Backbone.Undo.addUndoType("reset", {
+        "undo": function (collection, before, after) {
+            collection.reset(before);
+        },
+        "redo": function (collection, before, after) {
+    		collection.reset(after);
+		},
+        "on": function (collection, options) {
+            // The "on" method gets the arguments the type (here: "reset") 
+            // would get if it was bound to the object
+            return {
+                object: collection,
+                before: options.previousModels,
+                after: _.clone(collection.models) // We use a copy of the current state instead of storing a reference
+            }
+        }
+    })
+
+## Problems that may occur
 
 Backbone.Undo.js is not made to be called within your code. It has an internal mechanism which figures out 
 which Undo-Actions were generated in the same call cycle. 
