@@ -76,8 +76,7 @@ In order to set up you UndoManager you have to do the following steps:
 Methods you can call on an instance of Backbone.Undo:
 
 #### Constructor
-
-    new Backbone.Undo([object]);
+`new Backbone.Undo([object]);`
 
 The constructor can be called with an optional argument. The argument is an object of attributes. So far only the 
 attribute `maximumStackLength` is supported.
@@ -92,7 +91,7 @@ how many actions are undoable. The default value is `Infinity` so there's  no li
 
 #### register
 
-    undoManager.register(obj, [obj, ...]);
+`undoManager.register(obj, [obj, ...]);`
 
 Your undo-instance must know the object on which actions should be undone/redone. Therefore you have to register these
 objects:
@@ -107,7 +106,7 @@ and trigger an `"all"` event.
 
 #### unregister
 
-    undoManager.unregister(obj, [obj, ...]);
+`undoManager.unregister(obj, [obj, ...]);`
 
 Previously registered objects can be unregistered using the `unregister()` method. Changes to those objects can't be
 undone after they have been unregsitered.
@@ -121,7 +120,7 @@ undone after they have been unregsitered.
 
 #### startTracking
     
-    undoManager.startTracking();
+`undoManager.startTracking();`
 
 Your undo-manager won't store any changes that happen to registered objects until you called `startTracking()`.
 
@@ -133,7 +132,7 @@ Your undo-manager won't store any changes that happen to registered objects unti
 
 #### stopTracking
 
-    undoManager.stopTracking();
+`undoManager.stopTracking();`
     
 If you want to stop tracking changes for whatever reason, you can do that by calling `stopTracking()`
 
@@ -147,7 +146,7 @@ If you want to stop tracking changes for whatever reason, you can do that by cal
 
 #### undo
 
-    undoManager.undo();
+`undoManager.undo();`
     
 The method to undo the last set of actions is `undo()`. It undoes all actions that happened within one call cycle. That's
 why you shouldn't and can't call `undo()` within your code to undo actions. See 'Problems that may occur' for more 
@@ -155,7 +154,7 @@ information.
 
 #### redo
 
-    undoManager.redo();
+`undoManager.redo();`
     
 The method to redo an undone set of actions is `redo()`. Like `undo()` it redoes all actions that happened within 
 one call cycle. See 'Problems that may occur' for more information.
@@ -176,9 +175,9 @@ Backbone.Undo. Use the static method `Backbone.Undo.addUndoType()`:
 
 #### addUndoType
 
-    Backbone.Undo.addUndoType(type, callbacks);
-    // or
-    Backbone.Undo.addUndoType(types);
+	Backbone.Undo.addUndoType(type, callbacks);
+	// or
+	Backbone.Undo.addUndoType(types);
 
 An undo-type generates the data of an undo-action for a specific event and has an undo and redo method which know 
 how to undo and redo the action. With the `addUndoType()` method you can add or overwrite one or more of these undo-types.
