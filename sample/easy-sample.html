@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Backbone.Undo sample</title>
+	<style>
+		body {
+			font-family: sans-serif;
+			line-height: 140%;
+		}
+		#centered {
+			position: absolute;
+			top: 50%;
+			left: 50%;
+			margin-left: -180px;
+			margin-top: -120px;
+		}
+	</style>
+</head>
+<body>
+	<ol id="centered">
+		<li>
+			<button id="start">startTracking</button><button id="stop">stopTracking</button>
+			<p>Changes are currently <strong id="trackingState"></strong></p>
+		</li>
+		<li>
+			<input type="text" id="input" value="foo" /><button id="set">set</button>
+		</li>
+		<li>
+			<p>Number of undo-actions in the action-stack: <strong id="stacklength">0</strong></p>
+			<button id="undo">undo</button><button id="redo">redo</button>
+		</li>
+	</ol>
+	<ol>
+		<li>Click <em>startTracking</em> to start tracking changes</li>
+		<li>Enter different values into the input field and call <em>set</em> each time</li>
+		<li>Click <em>undo</em> or <em>redo</em> to undo/redo your changes</li>
+	</ol>
+
+	<script src="jquery-1.9.1.js"></script>
+	<script src="underscore.js"></script>
+	<script src="backbone.js"></script>
+
+	<script src="../Backbone.Undo.js"></script>
+
+	<script>
+		$(function () {
+			var model = new Backbone.Model({"value": "foo"}),
+			View = Backbone.View.extend({
+				initialize: function () {
+					// If the model's value changes, update the view
+					this.model.on("change:value", function (model, value, options) {
+						if (value != this.$el.val()) {
+							this.$el.val(value);
+						}
+					}, this);
+				}
+			})
+			view = new View({
+				model: model,
+				el: $("#input")
+			})
+
+			// If you click the set button, the model's value is changed
+			$("#set").on("click", function () {
+				model.set("value", $("#input").val());
+				$("#stacklength").text(undoManager.stack.length);
+			})
+
+			// Now: The undo/redo part 
+
+			var undoManager = new Backbone.UndoManager;
+			undoManager.register(model);
+
+			$("#start").on("click", function () {
+				undoManager.startTracking();
+				$("#trackingState").text("tracked");
+			})
+			$("#stop").on("click", function () {
+				undoManager.stopTracking();
+				$("#trackingState").text("not tracked");
+			}).click();
+			$("#undo").on("click", function () {
+				undoManager.undo();
+			})
+			$("#redo").on("click", function () {
+				undoManager.redo();
+			})
+		})
+	</script>
+</body>
+</html>
