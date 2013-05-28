@@ -25,8 +25,9 @@ An extremely simple Undo-Manager for Backbone.js
    
     In a sophisticated webapp one click of the user might trigger several Backbone-Events which are stored as 
     several Undo-Actions within the Undo-Stack. If the user then calls `undo()` it shouldn't just undo the latest 
-    action, it should undo all the actions which were triggered by the user's click. Backbone.Undo.js has a way to 
-    figure out which actions belong together and then undoes/redoes all of them.
+    action, it should undo all the actions which were triggered by the user's click. Backbone.Undo.js does just that
+    because it has a built-in mechanism that figures out which actions belong together and then undoes/redoes all 
+    of them.
  
 ## Getting started
 
@@ -50,16 +51,12 @@ Backbone.Undo.js was developed for Backbone 1.0.0 or higher.
 
 Backbone.Undo.js was developed for Underscore 1.4.4 or higher.
 
-# Setting up your UndoManager
+## Setting up your UndoManager
 
 In order to set up you UndoManager you have to do the following steps:
 
     // 1. Instantiate your UndoManager
-    var myUndoManager = new Backbone.UndoManager({
-      maximumStackLength: 100 // maximumStackLength determines how many actions
-      // are stored to be undone. Default is Infinity aka no limit at all. This
-      // attribute is optional. You don't need to pass anything to the constructor.
-      });
+    var myUndoManager = new Backbone.UndoManager();
       
     // 2. Register the models and collections you want to observe
     var model = new Backbone.Model,
@@ -74,7 +71,7 @@ In order to set up you UndoManager you have to do the following steps:
     // 3. Start tracking the changes
     myUndoManager.startTracking(); // Everything that happens from now on, can be undone
     
-# Undo or Redo Actions
+## Undo or Redo Actions
 
 To undo the last set of actions, just call `undo()`
 
@@ -140,4 +137,28 @@ changes to the model asynchronously.
     })
     
 Obviously noone would ever do that. In fact you also shouldn't do that: Your webapp shouldn't have any reference to the 
-undo-manager within your code. Try to develop it independently from the undo-manager.
+undo-manager within your code. Try to develop it independently from the undo-manager and then add an 
+undo-manager-controller which for example binds the undo/redo-calls to Shortcuts like ctrl+Z.
+
+## Backbone.Undo.js methods
+
+Methods you can call on an instance of Backbone.Undo:
+
+### Constructor
+
+The constructor can be called with an optional argument. The argument is an object of attributes. So far only the 
+attribute `maximumStackLength` is supported.
+
+    var undoManager = new Backbone.Undo; // possible, because arguments are optional
+    undoManager = new Backbone.Undo({
+        maximumStackLength: 30
+    });
+
+The attribute `maximumStackLength` defines how many undo-actions should be in the undo-stack at the utmost, which means
+how many actions are undoable. The default value is `Infinity` so there's  no limit at all.
+
+### startTracking
+
+Your undo-manager won't store any changes that happen to registered objects until you called startTracking:
+
+    undoManager.startTracking()
