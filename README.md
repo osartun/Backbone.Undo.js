@@ -75,8 +75,7 @@ In order to set up you UndoManager you have to do the following steps:
 
 Methods you can call on an instance of Backbone.Undo:
 
-#### Constructor
-`new Backbone.Undo([object]);`
+#### Constructor 	`new Backbone.Undo([object]);`
 
 The constructor can be called with an optional argument. The argument is an object of attributes. So far only the 
 attribute `maximumStackLength` is supported.
@@ -89,9 +88,7 @@ attribute `maximumStackLength` is supported.
 The attribute `maximumStackLength` defines how many undo-actions should be in the undo-stack at the utmost, which means
 how many actions are undoable. The default value is `Infinity` so there's  no limit at all.
 
-#### register
-
-`undoManager.register(obj, [obj, ...]);`
+#### register		`undoManager.register(obj, [obj, ...]);`
 
 Your undo-instance must know the object on which actions should be undone/redone. Therefore you have to register these
 objects:
@@ -104,9 +101,7 @@ The register-method doesn't check whether the object is an instance of Backbone.
 it possible to bind other objects which don't derive from Backbone constructors and yet have `on()` and `off()` methods
 and trigger an `"all"` event.
 
-#### unregister
-
-`undoManager.unregister(obj, [obj, ...]);`
+#### unregister		`undoManager.unregister(obj, [obj, ...]);`
 
 Previously registered objects can be unregistered using the `unregister()` method. Changes to those objects can't be
 undone after they have been unregsitered.
@@ -118,9 +113,7 @@ undone after they have been unregsitered.
     undoManager.unregister(myModel);
     myModel.set("foo", "baz"); // Can't be undone
 
-#### startTracking
-    
-`undoManager.startTracking();`
+#### startTracking 	`undoManager.startTracking();`
 
 Your undo-manager won't store any changes that happen to registered objects until you called `startTracking()`.
 
@@ -130,9 +123,7 @@ Your undo-manager won't store any changes that happen to registered objects unti
     undoManager.startTracking();
     myModel.set("foo", "baz"); // Can be undone
 
-#### stopTracking
-
-`undoManager.stopTracking();`
+#### stopTracking	`undoManager.stopTracking();`
     
 If you want to stop tracking changes for whatever reason, you can do that by calling `stopTracking()`
 
@@ -144,17 +135,13 @@ If you want to stop tracking changes for whatever reason, you can do that by cal
     undoManager.undo(); // "foo" is 1 instead of 2, because the last change wasn't tracked
     // btw: You shouldn't call `undo` within your code. See 'Problems that may occur'
 
-#### undo
-
-`undoManager.undo();`
+#### undo		`undoManager.undo();`
     
 The method to undo the last set of actions is `undo()`. It undoes all actions that happened within one call cycle. That's
 why you shouldn't and can't call `undo()` within your code to undo actions. See 'Problems that may occur' for more 
 information.
 
-#### redo
-
-`undoManager.redo();`
+#### redo		`undoManager.redo();`
     
 The method to redo an undone set of actions is `redo()`. Like `undo()` it redoes all actions that happened within 
 one call cycle. See 'Problems that may occur' for more information.
