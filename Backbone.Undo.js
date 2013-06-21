@@ -113,9 +113,9 @@
 		}
 	}
 
-	function actionUndoRedo (which, attr) {
+	function actionUndoRedo (which, attr, undoTypes) {
 		// Calls the undo/redo-function for a specific action
-		var type = attr.type, fn = !UndoTypes[type] || UndoTypes[type][which];
+		var type = attr.type, fn = !undoTypes[type] || undoTypes[type][which];
 		if (_.isFunction(fn)) {
 			fn(attr.object, attr.before, attr.after, _.clone(attr));
 		}
@@ -140,15 +140,15 @@
 		actions = stack.where({"cycleIndex": action.get("cycleIndex")});
 		stack.pointer += (isUndo ? -1 : 1) * (actions.length - 1);
 		while (action = isUndo ? actions.pop() : actions.shift()) {
-			action[which]();
+			action[which](stack.undoTypes);
 		}
 		stack.isCurrentlyUndoRedoing = false;
 	}
 
-	function addToStack(stack, type, args, maximumStackLength) {
+	function addToStack(stack, type, args, undoTypes, maximumStackLength) {
 		// Adds an Undo-Action to the stack.
-		if (stack.track && !stack.isCurrentlyUndoRedoing && type in UndoTypes) {
-			var res = apply(UndoTypes[type]["on"], null, args), diff;
+		if (stack.track && !stack.isCurrentlyUndoRedoing && type in undoTypes) {
+			var res = apply(undoTypes[type]["on"], null, args), diff;
 			if (hasKeys(res, "object", "before", "after")) {
 				res.type = type;
 				res.cycleIndex = getCurrentCycleIndex();
@@ -271,11 +271,11 @@
 			after: null, // The values after this action
 			cycleIndex: null // The cycle index is to combine all actions which happend "at once" to undo/redo them altogether
 		},
-		undo: function () {
-			actionUndoRedo("undo", this.attributes);
+		undo: function (undoTypes) {
+			actionUndoRedo("undo", this.attributes, undoTypes);
 		},
-		redo: function () {
-			actionUndoRedo("redo", this.attributes);
+		redo: function (undoTypes) {
+			actionUndoRedo("redo", this.attributes, undoTypes);
 		}
 	}),
 	UndoStack = Backbone.Collection.extend({
@@ -286,12 +286,13 @@
 		maximumStackLength: Infinity,
 		initialize: function () {
 			this.objectRegistry = new ObjectRegistry();
+			this.undoTypes = new OwnedUndoTypes();
 		},
 		setMaxLength: function (val) {
 			this.maximumStackLength = val;
 		},
 		addToStack: function (type) {
-			addToStack(this, type, slice(arguments, 1), this.maximumStackLength);
+			addToStack(this, type, slice(arguments, 1), this.undoTypes, this.maximumStackLength);
 		}
 	}),
 	UndoManager = Backbone.Model.extend({
@@ -299,7 +300,7 @@
 			maximumStackLength: Infinity
 		},
 		initialize: function (attr) {
-			this.stack = new UndoStack; 
+			this.stack = new UndoStack;
 
 			// sync the maximumStackLength attribute with our stack
 			this.stack.setMaxLength(this.get("maximumStackLength"));
@@ -326,6 +327,15 @@
 			managerUndoRedo("redo", this.stack);
 		}
 	});
+
+	// Every instance of the undo manager has an own UndoTypes 
+	// object. This object is an instance of OwnedUndoTypes whose 
+	// prototype is the global UndoTypes object. By doing this,
+	// changes to the global UndoTypes object take effect on every
+	// instance and yet every local UndoTypes object can be changed
+	// individually.
+	function OwnedUndoTypes () {}
+	OwnedUndoTypes.prototype = UndoTypes;
 
 	UndoManager.addUndoType = function (type, fns) {
 		if (typeof type === "object") {
