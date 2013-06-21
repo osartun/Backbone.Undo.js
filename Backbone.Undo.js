@@ -59,7 +59,7 @@
 			if (!cycleWasIndexed) {
 				indexCycle();
 			}
-			return cycleIndex|0;
+			return cycleIndex|0; // Make this a true integer
 		}
 	})();
 
