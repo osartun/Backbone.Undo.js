@@ -94,6 +94,7 @@
 		// Binds or unbinds the "all" listener for one or more objects
 		for (var i = 0, l = objects.length, obj; i < l; i++) {
 			obj = objects[i];
+			if (!obj) continue;
 			if (which === "on") {
 				if (ctx.objectRegistry.isRegistered(obj)) {
 					continue;
@@ -117,7 +118,7 @@
 		// Calls the undo/redo-function for a specific action
 		var type = attr.type, fn = !undoTypes[type] || undoTypes[type][which];
 		if (_.isFunction(fn)) {
-			fn(attr.object, attr.before, attr.after, _.clone(attr));
+			fn(attr.object, attr.before, attr.after, attr);
 		}
 	}
 
@@ -343,7 +344,7 @@
 				UndoManager.addUndoType(key, val);
 			})
 		}
-		if (_.isString(type) && hasKeys(fns, "undo", "redo", "on") && _.all(fns, _.isFunction())) {
+		if (_.isString(type) && hasKeys(fns, "undo", "redo", "on") && _.all(fns, _.isFunction)) {
 			UndoTypes[type] = fns;
 		}
 	}
