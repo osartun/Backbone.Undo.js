@@ -326,6 +326,15 @@
 		},
 		redo: function () {
 			managerUndoRedo("redo", this.stack);
+		},
+		addUndoType: function (type, fns) {
+			manipulateUndoType(0, type, fns, this.stack.undoTypes);
+		},
+		changeUndoType: function (type, fns) {
+			manipulateUndoType(1, type, fns, this.stack.undoTypes);
+		},
+		removeUndoType: function (type) {
+			manipulateUndoType(2, type, undefined, this.stack.undoTypes);
 		}
 	});
 
@@ -338,16 +347,52 @@
 	function OwnedUndoTypes () {}
 	OwnedUndoTypes.prototype = UndoTypes;
 
-	UndoManager.addUndoType = function (type, fns) {
-		if (typeof type === "object") {
+	function manipulateUndoType (manipType, undoType, fns, obj) {
+		// manipType
+		// 0: add
+		// 1: change
+		// 2: remove
+		if (typeof undoType === "object") {
+			// bulk action. Iterate over this data.
 			return _.each(type, function (val, key) {
-				UndoManager.addUndoType(key, val);
-			})
+					if (manipType === 2) { // remove
+						// type is an array
+						manipulateUndoType (manipType, val, fns, obj);
+					} else {
+						// type is an object
+						manipulateUndoType (manipType, key, val, obj);
+					}
+				})
 		}
-		if (_.isString(type) && hasKeys(fns, "undo", "redo", "on") && _.all(fns, _.isFunction)) {
-			UndoTypes[type] = fns;
+
+		switch (manipType) {
+			case 0: // add
+			if (hasKeys(fns, "undo", "redo", "on") && _.all(_.pick(fns, "undo", "redo", "on"), fns), _.isFunction)) {
+				obj[undoType] = fns;
+			} 
+			break;
+			case 1: // change
+			if (obj[undoType] && _.isObject(fns)) {
+				_.extend(obj[undoType], fns);
+			} 
+			break;
+			case 2: // remove
+			delete obj[undoType]; 
+			break;
 		}
 	}
+
+	_.extend(UndoManager, {
+		"addUndoType": function (type, fns) {
+			manipulateUndoType(0, type, fns, UndoTypes);
+		},
+		"changeUndoType": function (type, fns) {
+			manipulateUndoType(1, type, fns, UndoTypes)
+		},
+		"removeUndoType": function (type) {
+			manipulateUndoType(2, type, undefined, UndoTypes);
+		}
+	})
 
 	Backbone.UndoManager = UndoManager;
 
