@@ -367,7 +367,7 @@
 
 		switch (manipType) {
 			case 0: // add
-			if (hasKeys(fns, "undo", "redo", "on") && _.all(_.pick(fns, "undo", "redo", "on"), fns), _.isFunction)) {
+			if (hasKeys(fns, "undo", "redo", "on") && _.all(_.pick(fns, "undo", "redo", "on"), _.isFunction)) {
 				obj[undoType] = fns;
 			} 
 			break;
