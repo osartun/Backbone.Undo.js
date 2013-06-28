@@ -135,7 +135,7 @@
 		}
 	}
 
-	function managerUndoRedo (which, stack) {
+	function managerUndoRedo (which, manager, stack) {
 		// Undoes or redoes the action the pointer is pointing at
 		if (stack.isCurrentlyUndoRedoing || 
 			(which === "undo" && stack.pointer === -1) ||
@@ -157,6 +157,8 @@
 			action[which](stack.undoTypes);
 		}
 		stack.isCurrentlyUndoRedoing = false;
+
+		manager.trigger(which, manager);
 	}
 
 	function addToStack(stack, type, args, undoTypes, maximumStackLength) {
@@ -335,10 +337,10 @@
 			onoff("off", arguments, this.stack.addToStack, this.stack);
 		},
 		undo: function () {
-			managerUndoRedo("undo", this.stack);
+			managerUndoRedo("undo", this, this.stack);
 		},
 		redo: function () {
-			managerUndoRedo("redo", this.stack);
+			managerUndoRedo("redo", this, this.stack);
 		},
 		addUndoType: function (type, fns) {
 			manipulateUndoType(0, type, fns, this.stack.undoTypes);
