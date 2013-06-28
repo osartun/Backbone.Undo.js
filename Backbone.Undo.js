@@ -418,17 +418,17 @@
 
 		switch (manipType) {
 			case 0: // add
-			if (hasKeys(fns, "undo", "redo", "on") && _.all(_.pick(fns, "undo", "redo", "on"), _.isFunction)) {
-				obj[undoType] = fns;
-			} 
+				if (hasKeys(fns, "undo", "redo", "on") && _.all(_.pick(fns, "undo", "redo", "on"), _.isFunction)) {
+					obj[undoType] = fns;
+				} 
 			break;
 			case 1: // change
-			if (obj[undoType] && _.isObject(fns)) {
-				_.extend(obj[undoType], fns);
-			} 
+				if (obj[undoType] && _.isObject(fns)) {
+					_.extend(obj[undoType], fns);
+				} 
 			break;
 			case 2: // remove
-			delete obj[undoType]; 
+				delete obj[undoType]; 
 			break;
 		}
 	}
