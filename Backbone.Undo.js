@@ -351,6 +351,33 @@
 				default: return false;
 			}
 		},
+		merge: function (undoManager) {
+			// This sets the stack-reference to the stack of another 
+			// undoManager so that the stack of this other undoManager 
+			// is used by two different managers.
+			// This enables to set up a main-undoManager and besides it
+			// several others for special, exceptional cases (by using
+			// instance-based custom UndoTypes). Models / collections 
+			// which need this special treatment are only registered at 
+			// these special undoManagers. These special ones are then 
+			// merged with the main-undoManagers to write on its stack. 
+			// That way it's easier to manage exceptional cases.
+
+			// Please note: It's way faster to first merge an undoManager
+			// with another one and then register all objects than the
+			// other way round.
+			if (undoManager instanceof UndoManager &&
+				undoManager.stack instanceof UndoStack) {
+				// unregister already registered objects
+				var registeredObjects = this.stack.objectRegistry.get(),
+				hasObjects = !!registeredObjects.length;
+				if (hasObjects) apply(this.unregister, this, registeredObjects);
+				// replace the stack reference
+				this.stack = undoManager.stack;
+				// register the just unregistered objects, now on the new stack
+				if (hasObjects) apply(this.register, this, registeredObjects);
+			}
+		},
 		addUndoType: function (type, fns) {
 			manipulateUndoType(0, type, fns, this.stack.undoTypes);
 		},
