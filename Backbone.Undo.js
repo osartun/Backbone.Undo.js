@@ -65,6 +65,16 @@
 
 	// To prevent binding a listener several times to one object, we register the objects
 	function ObjectRegistry () {
+		// This uses two different ways of storing
+		// objects: In case the object has a cid
+		// (which Backbone objects typically have)
+		// it uses this cid as an index. That way
+		// the Array's length attribute doesn't 
+		// change and the object isn't really part 
+		// of the array as a list but of the array
+		// as an object.
+		// In case it doesn't have a cid it's 
+		// pushed as an Array-item.
 		this.registeredObjects = [];
 	}
 	ObjectRegistry.prototype = {
