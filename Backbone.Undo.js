@@ -10,18 +10,45 @@
 (function (win, doc, $, _, Backbone, undefined) {
 
 	var core_slice = Array.prototype.slice;
+
+	/**
+	 * As call is faster than apply, this is a faster version of apply as it uses call.
+	 * 
+	 * @param  {Function} fn The function to execute 
+	 * @param  {Object}   ctx The context the function should be called in
+	 * @param  {Array}    args The array of arguments that should be applied to the function
+	 * @return Forwards whatever the called function returns
+	 */
 	function apply (fn, ctx, args) {
-		// As call is faster than apply, this is a faster version of apply as it uses call
 		return args.length <= 4 ?
 			fn.call(ctx, args[0], args[1], args[2], args[3]) :
 			fn.apply(ctx, args);
 	}
 
+	/**
+	 * Uses slice on an array or an array-like object.
+	 * 
+	 * @param  {Array|Object} arr
+	 * @param  {Number} [index]
+	 * @return {Array} The sliced array
+	 */
 	function slice (arr, index) {
 		return core_slice.call(arr, index);
 	}
+
+	/**
+	 * Checks if an object has one or more specific keys. The keys 
+	 * don't have to be an owned property.
+	 * You can call this function either this way:
+	 * hasKeys(obj, ["a", "b", "c"])
+	 * or this way:
+	 * hasKeys(obj, "a", "b", "c")
+	 * 
+	 * @param  {Object}  obj The object to check on
+	 * @param  {Array}  keys The keys to check for
+	 * @return {Boolean} true, if the object has all those keys
+	 */
 	function hasKeys (obj, keys) {
-		// Checks if an object has one or more specific keys. The keys don't have to be an owned property
 		if (obj == null) return false;
 		if (!_.isArray(keys)) {
 			keys = slice(arguments, 1);
@@ -31,6 +58,12 @@
 		});
 	}
 
+	/**
+	 * Returns a number that is unique per call stack. The number gets 
+	 * changed after the call stack has been completely processed.
+	 * 
+	 * @return {number} 
+	 */
 	var getCurrentCycleIndex = (function () {
 		// If you add several models to a collection or set several
 		// attributes on a model all in sequence and yet all for
@@ -54,7 +87,7 @@
 			_.defer(function () {
 				// Here comes the magic. With a Timeout of 0 
 				// milliseconds this function gets called whenever
-				// the current thread is finished
+				// the current call stack is completely processed
 				cycleWasIndexed = false;
 			})
 		}
@@ -66,7 +99,12 @@
 		}
 	})();
 
-	// To prevent binding a listener several times to one object, we register the objects
+	/**
+	 * To prevent binding a listener several times to one 
+	 * object, we register the objects in an ObjectRegistry
+	 *
+	 * @constructor
+	 */
 	function ObjectRegistry () {
 		// This uses two different ways of storing
 		// objects: In case the object has a cid
@@ -82,9 +120,23 @@
 		this.cidIndexes = []; // Here, the cid-indexes are stored
 	}
 	ObjectRegistry.prototype = {
+		/**
+		 * Returns whether the object is already registered in this ObjectRegistry or not.
+		 * 
+		 * @this {ObjectRegistry}
+		 * @param  {Object} obj The object to check
+		 * @return {Boolean} true if the object is already registered
+		 */
 		isRegistered: function (obj) {
 			return obj && obj.cid ? this.registeredObjects[obj.cid] : _.contains(this.registeredObjects, obj);
 		},
+		/**
+		 * Registeres an object in this ObjectRegistry.
+		 * 
+		 * @this {ObjectRegistry}
+		 * @param  {Object} obj The object to register
+		 * @return {undefined}
+		 */
 		register: function (obj) {
 			if (obj && obj.cid) {
 				this.registeredObjects[obj.cid] = obj;
@@ -93,6 +145,13 @@
 				this.registeredObjects.push(obj);
 			}
 		},
+		/**
+		 * Unregisteres an object from this ObjectRegistry.
+		 * 
+		 * @this {ObjectRegistry}
+		 * @param  {Object} obj The object to unregister
+		 * @return {undefined}
+		 */
 		unregister: function (obj) {
 			if (obj && obj.cid) {
 				delete this.registeredObjects[obj.cid];
@@ -102,11 +161,25 @@
 				this.registeredObjects.splice(i, 1);
 			}
 		},
+		/**
+		 * Returns an array of all the objects which are currently in this ObjectRegistry.
+		 * 
+		 * @return {Array} An array of all the objects which are currently in the ObjectRegistry
+		 */
 		get: function () {
 			return (_.map(this.indexes, function (cid) {return this.registeredObjects[cid];}, this)).concat(this.registeredObjects);
 		}
 	}
 
+	/**
+	 * Binds or unbinds the "all"-listener for one or more objects.
+	 * 
+	 * @param  {String}   which Either "on" or "off"
+	 * @param  {Object[]}    objects Array of the objects on which the "all"-listener should be bound / unbound
+	 * @param  {Function} [fn] The function that should be bound / unbound. Optional in case of "off"
+	 * @param  {Object}   [ctx] The context the function should be called in
+	 * @return {undefined}
+	 */
 	function onoff(which, objects, fn, ctx) {
 		// Binds or unbinds the "all" listener for one or more objects
 		for (var i = 0, l = objects.length, obj; i < l; i++) {
@@ -131,16 +204,32 @@
 		}
 	}
 
-	function actionUndoRedo (which, attr, undoTypes) {
-		// Calls the undo/redo-function for a specific action
-		var type = attr.type, fn = !undoTypes[type] || undoTypes[type][which];
+	/**
+	 * Calls the undo/redo-function for a specific action.
+	 * 
+	 * @param  {String} which Either "undo" or "redo"
+	 * @param  {Object} action The Action's attributes
+	 * @param  {OwnedUndoTypes} undoTypes The undoTypes-instance which has the "undo"/"redo" handler
+	 * @return {undefined}
+	 */
+	function actionUndoRedo (which, action, undoTypes) {
+		var type = action.type, fn = !undoTypes[type] || undoTypes[type][which];
 		if (_.isFunction(fn)) {
-			fn(attr.object, attr.before, attr.after, attr);
+			fn(action.object, action.before, action.after, action);
 		}
 	}
 
+	/**
+	 * The main undo/redo function. Undoes / redoes all actions which 
+	 * have the same cycleIndex attribute as the action the stack-pointer 
+	 * is pointing to.
+	 * 
+	 * @param  {String} which Either "undo" or "redo"
+	 * @param  {UndoManager} manager The UndoManager-instance on which an "undo"/"redo"-Event is triggered afterwards
+	 * @param  {UndoStack} stack
+	 * @return {undefined}
+	 */
 	function managerUndoRedo (which, manager, stack) {
-		// Undoes or redoes the action the pointer is pointing at
 		if (stack.isCurrentlyUndoRedoing || 
 			(which === "undo" && stack.pointer === -1) ||
 			(which === "redo" && stack.pointer === stack.length - 1)) {
@@ -165,8 +254,16 @@
 		manager.trigger(which, manager);
 	}
 
-	function addToStack(stack, type, args, undoTypes, maximumStackLength) {
-		// Adds an Undo-Action to the stack.
+	/**
+	 * Adds an Undo-Action to the stack.
+	 * 
+	 * @param {UndoStack} stack
+	 * @param {String} type The event type (i.e. "change")
+	 * @param {Arguments} args The arguments passed to the undoTypes' "on"-handler
+	 * @param {OwnedUndoTypes} undoTypes The undoTypes-object which has the "on"-handler
+	 * @return {undefined}
+	 */
+	function addToStack(stack, type, args, undoTypes) {
 		if (stack.track && !stack.isCurrentlyUndoRedoing && type in undoTypes) {
 			var res = apply(undoTypes[type]["on"], null, args), diff;
 			if (hasKeys(res, "object", "before", "after")) {
@@ -184,7 +281,7 @@
 				}
 				stack.pointer = stack.length;
 				stack.add(res);
-				if (stack.length > maximumStackLength) {
+				if (stack.length > stack.maximumStackLength) {
 					stack.shift();
 					stack.pointer--;
 				}
@@ -192,6 +289,10 @@
 		}
 	}
 
+	/**
+	 * Predefined UndoTypes object with default handlers for the most common events.
+	 * @type {Object}
+	 */
 	var UndoTypes = {
 		"add": {
 			"undo": function (collection, ignore, model, data) {
@@ -276,8 +377,34 @@
 				};
 			}
 		}
-	},
-	Action = Backbone.Model.extend({
+	};
+
+	/**
+	 * Every instance of the undo manager has an own undoTypes 
+	 * object which is an instance of OwnedUndoTypes whose 
+	 * prototype is the global UndoTypes object. By refering to the 
+	 * global UndoTypes object as the prototype changes to the global 
+	 * UndoTypes object take effect on every instance and yet every 
+	 * local UndoTypes object can be changed individually.
+	 *
+	 * @constructor
+	 */
+	function OwnedUndoTypes () {}
+	OwnedUndoTypes.prototype = UndoTypes;
+
+	/**
+	 * Adds, changes or removes an undo-type from an UndoTypes-object.
+	 * You can call it this way:
+	 * manipulateUndoType (1, "reset", {"on": function () {}}, undoTypes)
+	 * or this way:
+	 * manipulateUndoType (1, {"reset": {"on": function () {}}}, undoTypes)
+	 * 
+	 * @param  {Number} manipType Indicates the kind of action to execute: 0 for add, 1 for change, 2 for remove
+	 * @param  {String|Object|Array} undoType The type of undoType that should be added/changed/removed. Can be an object / array to perform bulk actions
+	 * @param  {Object} [fns] Object with the functions to add / change. Is optional in case you passed an object as undoType which contains these functions
+	 * @param  {OwnedUndoTypes|UndoTypes} undoTypesInstance The undoTypes object to act on
+	 * @return {undefined}
+	 */
 	function manipulateUndoType (manipType, undoType, fns, undoTypesInstance) {
 		// manipType
 		// 0: add
@@ -321,9 +448,19 @@
 			after: null, // The values after this action
 			cycleIndex: null // The cycle index is to combine all actions which happend "at once" to undo/redo them altogether
 		},
+		/**
+		 * Undoes this action.
+		 * @param  {OwnedUndoTypes|UndoTypes} undoTypes The undoTypes object which contains the "undo"-handler that should be used
+		 * @return {undefined}
+		 */
 		undo: function (undoTypes) {
 			actionUndoRedo("undo", this.attributes, undoTypes);
 		},
+		/**
+		 * Redoes this action.
+		 * @param  {OwnedUndoTypes|UndoTypes} undoTypes The undoTypes object which contains the "redo"-handler that should be used
+		 * @return {undefined}
+		 */
 		redo: function (undoTypes) {
 			actionUndoRedo("redo", this.attributes, undoTypes);
 		}
@@ -341,8 +478,16 @@
 		setMaxLength: function (val) {
 			this.maximumStackLength = val;
 		},
+		/**
+		 * This is the "all"-handler which is bound to registered 
+		 * objects. It creates an UndoAction from the event and adds 
+		 * it to the stack.
+		 * 
+		 * @param  {String} type The event type
+		 * @return {undefined}
+		 */
 		addToStack: function (type) {
-			addToStack(this, type, slice(arguments, 1), this.undoTypes, this.maximumStackLength);
+			addToStack(this, type, slice(arguments, 1), this.undoTypes);
 		}
 	}),
 	UndoManager = Backbone.Model.extend({
@@ -358,33 +503,69 @@
 				this.stack.setMaxLength(value);
 			}, this);
 		},
+		/**
+		 * Starts tracking. Changes of registered objects won't be processed until you've called this function
+		 * @return {undefined}
+		 */
 		startTracking: function () {
 			this.stack.track = true;
 		},
+		/**
+		 * Stops tracking. Afterwards changes of registered objects won't be processed.
+		 * @return {undefined}
+		 */
 		stopTracking: function () {
 			this.stack.track = false;
 		},
+		/**
+		 * Registers one or more objects to track their changes.
+		 * @param {...Object} obj The object whose changes should be tracked
+		 * @return {undefined}
+		 */
 		register: function () {
 			onoff("on", arguments, this.stack.addToStack, this.stack);
 		},
+		/**
+		 * Unregisters one or more objects.
+		 * @param {...Object} obj The object whose changes shouldn't be tracked any longer
+		 * @return {undefined}
+		 */
 		unregister: function () {
 			onoff("off", arguments, this.stack.addToStack, this.stack);
 		},
+		/**
+		 * Undoes the last set of actions which were created during one "call cycle".
+		 * @return {undefined}
+		 */
 		undo: function () {
 			managerUndoRedo("undo", this, this.stack);
 		},
+		/**
+		 * Redoes a previously undone set of actions.
+		 * @return {undefined}
+		 */
 		redo: function () {
 			managerUndoRedo("redo", this, this.stack);
 		},
+		/**
+		 * Checks if there's a set of actions in the stack which can be undone / redone
+		 * @param  {String} type Either "undo" or "redo"
+		 * @return {Boolean} true if there is a set of actions which can be undone / redone
+		 */
 		isAvailable: function (type) {
-			var s = this.stack;
+			var s = this.stack, l = s.length;
 
 			switch (type) {
-				case "undo": return !!(s.length && s.pointer > -1);
-				case "redo": return !!(s.length && s.pointer < s.length - 1);
+				case "undo": return l > 0 && s.pointer > -1;
+				case "redo": return l > 0 && s.pointer < l - 1;
 				default: return false;
 			}
 		},
+		/**
+		 * Sets the stack-reference to the stack of another undoManager.
+		 * @param  {UndoManager} undoManager The undoManager whose stack should be used
+		 * @return {undefined}
+		 */
 		merge: function (undoManager) {
 			// This sets the stack-reference to the stack of another 
 			// undoManager so that the stack of this other undoManager 
