@@ -11,8 +11,8 @@
 
 	function apply (fn, ctx, args) {
 		// As call is faster than apply, this is a faster version of apply as it uses call
-		return args.length <= 3 ?
-			fn.call(ctx, args[0], args[1], args[2]) :
+		return args.length <= 4 ?
+			fn.call(ctx, args[0], args[1], args[2], args[3]) :
 			fn.apply(ctx, args);
 	}
 
