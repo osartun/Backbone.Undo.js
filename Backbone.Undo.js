@@ -97,6 +97,9 @@
 					this.registeredObjects.splice(i, 1);
 				}
 			}
+		},
+		get: function () {
+			return _.clone(this.registeredObjects);
 		}
 	}
 
