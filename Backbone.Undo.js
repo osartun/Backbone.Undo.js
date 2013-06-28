@@ -278,6 +278,42 @@
 		}
 	},
 	Action = Backbone.Model.extend({
+	function manipulateUndoType (manipType, undoType, fns, undoTypesInstance) {
+		// manipType
+		// 0: add
+		// 1: change
+		// 2: remove
+		if (typeof undoType === "object") {
+			// bulk action. Iterate over this data.
+			return _.each(undoType, function (val, key) {
+					if (manipType === 2) { // remove
+						// undoType is an array
+						manipulateUndoType (manipType, val, fns, undoTypesInstance);
+					} else {
+						// undoType is an object
+						manipulateUndoType (manipType, key, val, fns);
+					}
+				})
+		}
+
+		switch (manipType) {
+			case 0: // add
+				if (hasKeys(fns, "undo", "redo", "on") && _.all(_.pick(fns, "undo", "redo", "on"), _.isFunction)) {
+					undoTypesInstance[undoType] = fns;
+				} 
+			break;
+			case 1: // change
+				if (undoTypesInstance[undoType] && _.isObject(fns)) {
+					_.extend(undoTypesInstance[undoType], fns);
+				} 
+			break;
+			case 2: // remove
+				delete undoTypesInstance[undoType]; 
+			break;
+		}
+	}
+
+	var Action = Backbone.Model.extend({
 		defaults: {
 			type: null, // "add", "change", etc.
 			object: null, // The object on which the action occured
@@ -386,50 +422,6 @@
 			manipulateUndoType(2, type, undefined, this.stack.undoTypes);
 		}
 	});
-
-	// Every instance of the undo manager has an own UndoTypes 
-	// object. This object is an instance of OwnedUndoTypes whose 
-	// prototype is the global UndoTypes object. By doing this,
-	// changes to the global UndoTypes object take effect on every
-	// instance and yet every local UndoTypes object can be changed
-	// individually.
-	function OwnedUndoTypes () {}
-	OwnedUndoTypes.prototype = UndoTypes;
-
-	function manipulateUndoType (manipType, undoType, fns, obj) {
-		// manipType
-		// 0: add
-		// 1: change
-		// 2: remove
-		if (typeof undoType === "object") {
-			// bulk action. Iterate over this data.
-			return _.each(type, function (val, key) {
-					if (manipType === 2) { // remove
-						// type is an array
-						manipulateUndoType (manipType, val, fns, obj);
-					} else {
-						// type is an object
-						manipulateUndoType (manipType, key, val, obj);
-					}
-				})
-		}
-
-		switch (manipType) {
-			case 0: // add
-				if (hasKeys(fns, "undo", "redo", "on") && _.all(_.pick(fns, "undo", "redo", "on"), _.isFunction)) {
-					obj[undoType] = fns;
-				} 
-			break;
-			case 1: // change
-				if (obj[undoType] && _.isObject(fns)) {
-					_.extend(obj[undoType], fns);
-				} 
-			break;
-			case 2: // remove
-				delete obj[undoType]; 
-			break;
-		}
-	}
 
 	_.extend(UndoManager, {
 		"addUndoType": function (type, fns) {
