@@ -9,6 +9,7 @@
  */
 (function (win, doc, $, _, Backbone, undefined) {
 
+	var core_slice = Array.prototype.slice;
 	function apply (fn, ctx, args) {
 		// As call is faster than apply, this is a faster version of apply as it uses call
 		return args.length <= 4 ?
@@ -16,6 +17,9 @@
 			fn.apply(ctx, args);
 	}
 
+	function slice (arr, index) {
+		return core_slice.call(arr, index);
+	}
 	function hasKeys (obj, keys) {
 		// Checks if an object has one or more specific keys. The keys don't have to be an owned property
 		if (obj == null) return false;
@@ -189,13 +193,7 @@
 		}
 	}
 
-
-	var
-	core_slice = Array.prototype.slice,
-	slice = function (arr, index) {
-		return core_slice.call(arr, index);
-	},
-	UndoTypes = {
+	var UndoTypes = {
 		"add": {
 			"undo": function (collection, ignore, model, data) {
 				// Undo add = remove
