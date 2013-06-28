@@ -342,6 +342,15 @@
 		redo: function () {
 			managerUndoRedo("redo", this, this.stack);
 		},
+		isAvailable: function (type) {
+			var s = this.stack;
+
+			switch (type) {
+				case "undo": return !!(s.length && s.pointer > -1);
+				case "redo": return !!(s.length && s.pointer < s.length - 1);
+				default: return false;
+			}
+		},
 		addUndoType: function (type, fns) {
 			manipulateUndoType(0, type, fns, this.stack.undoTypes);
 		},
