@@ -26,10 +26,9 @@
 		if (!_.isArray(keys)) {
 			keys = slice(arguments, 1);
 		}
-		for (var i = 0, l = keys.length; i < l; i++) {
-			if (!(keys[i] in obj)) return false;
-		}
-		return true;
+		return _.all(keys, function (key) {
+			return key in obj;
+		});
 	}
 
 	var getCurrentCycleIndex = (function () {
