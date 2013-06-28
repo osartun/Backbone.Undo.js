@@ -76,6 +76,7 @@
 		// In case it doesn't have a cid it's 
 		// pushed as an Array-item.
 		this.registeredObjects = [];
+		this.cidIndexes = []; // Here, the cid-indexes are stored
 	}
 	ObjectRegistry.prototype = {
 		isRegistered: function (obj) {
@@ -84,6 +85,7 @@
 		register: function (obj) {
 			if (obj && obj.cid) {
 				this.registeredObjects[obj.cid] = obj;
+				this.cidIndexes.push(obj.cid);
 			} else {
 				this.registeredObjects.push(obj);
 			}
@@ -91,15 +93,14 @@
 		unregister: function (obj) {
 			if (obj && obj.cid) {
 				delete this.registeredObjects[obj.cid];
+				this.cidIndexes.splice(_.indexOf(this.cidIndexes, obj.cid), 1);
 			} else {
 				var i = _.indexOf(this.registeredObjects, obj);
-				if (i > -1) {
-					this.registeredObjects.splice(i, 1);
-				}
+				this.registeredObjects.splice(i, 1);
 			}
 		},
 		get: function () {
-			return _.clone(this.registeredObjects);
+			return (_.map(this.indexes, function (cid) {return this.registeredObjects[cid];}, this)).concat(this.registeredObjects);
 		}
 	}
 
