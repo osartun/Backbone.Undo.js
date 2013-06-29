@@ -247,7 +247,7 @@
 		actions = stack.where({"cycleIndex": action.get("cycleIndex")});
 		stack.pointer += (isUndo ? -1 : 1) * (actions.length - 1);
 		while (action = isUndo ? actions.pop() : actions.shift()) {
-			action[which](stack.undoTypes);
+			action[which](manager.undoTypes);
 		}
 		stack.isCurrentlyUndoRedoing = false;
 
@@ -477,23 +477,8 @@
 		track: false,
 		isCurrentlyUndoRedoing: false,
 		maximumStackLength: Infinity,
-		initialize: function () {
-			this.objectRegistry = new ObjectRegistry();
-			this.undoTypes = new OwnedUndoTypes();
-		},
 		setMaxLength: function (val) {
 			this.maximumStackLength = val;
-		},
-		/**
-		 * This is the "all"-handler which is bound to registered 
-		 * objects. It creates an UndoAction from the event and adds 
-		 * it to the stack.
-		 * 
-		 * @param  {String} type The event type
-		 * @return {undefined}
-		 */
-		addToStack: function (type) {
-			addToStack(this, type, slice(arguments, 1), this.undoTypes);
 		}
 	}),
 	UndoManager = Backbone.Model.extend({
@@ -502,6 +487,8 @@
 		},
 		initialize: function (attr) {
 			this.stack = new UndoStack;
+			this.objectRegistry = new ObjectRegistry();
+			this.undoTypes = new OwnedUndoTypes();
 
 			// sync the maximumStackLength attribute with our stack
 			this.stack.setMaxLength(this.get("maximumStackLength"));
@@ -524,12 +511,23 @@
 			this.stack.track = false;
 		},
 		/**
+		 * This is the "all"-handler which is bound to registered 
+		 * objects. It creates an UndoAction from the event and adds 
+		 * it to the stack.
+		 * 
+		 * @param  {String} type The event type
+		 * @return {undefined}
+		 */
+		_addToStack: function (type) {
+			addToStack(this.stack, type, slice(arguments, 1), this.undoTypes);
+		},
+		/**
 		 * Registers one or more objects to track their changes.
 		 * @param {...Object} obj The object whose changes should be tracked
 		 * @return {undefined}
 		 */
 		register: function () {
-			onoff("on", arguments, this.stack.addToStack, this.stack);
+			onoff("on", arguments, this._addToStack, this);
 		},
 		/**
 		 * Unregisters one or more objects.
@@ -537,7 +535,7 @@
 		 * @return {undefined}
 		 */
 		unregister: function () {
-			onoff("off", arguments, this.stack.addToStack, this.stack);
+			onoff("off", arguments, this._addToStack, this);
 		},
 		/**
 		 * Undoes the last set of actions which were created during one "call cycle".
@@ -590,7 +588,7 @@
 			if (undoManager instanceof UndoManager &&
 				undoManager.stack instanceof UndoStack) {
 				// unregister already registered objects
-				var registeredObjects = this.stack.objectRegistry.get(),
+				var registeredObjects = this.objectRegistry.get(),
 				hasObjects = !!registeredObjects.length;
 				if (hasObjects) apply(this.unregister, this, registeredObjects);
 				// replace the stack reference
@@ -600,13 +598,13 @@
 			}
 		},
 		addUndoType: function (type, fns) {
-			manipulateUndoType(0, type, fns, this.stack.undoTypes);
+			manipulateUndoType(0, type, fns, this.undoTypes);
 		},
 		changeUndoType: function (type, fns) {
-			manipulateUndoType(1, type, fns, this.stack.undoTypes);
+			manipulateUndoType(1, type, fns, this.undoTypes);
 		},
 		removeUndoType: function (type) {
-			manipulateUndoType(2, type, undefined, this.stack.undoTypes);
+			manipulateUndoType(2, type, undefined, this.undoTypes);
 		}
 	});
 
