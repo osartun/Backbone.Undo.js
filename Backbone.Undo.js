@@ -175,7 +175,7 @@
 	 * Binds or unbinds the "all"-listener for one or more objects.
 	 * 
 	 * @param  {String}   which Either "on" or "off"
-	 * @param  {Object[]}    objects Array of the objects on which the "all"-listener should be bound / unbound
+	 * @param  {Object[]} objects Array of the objects on which the "all"-listener should be bound / unbound
 	 * @param  {Function} [fn] The function that should be bound / unbound. Optional in case of "off"
 	 * @param  {Object}   [ctx] The context the function should be called in
 	 * @return {undefined}
@@ -226,7 +226,7 @@
 	 * 
 	 * @param  {String} which Either "undo" or "redo"
 	 * @param  {UndoManager} manager The UndoManager-instance on which an "undo"/"redo"-Event is triggered afterwards
-	 * @param  {UndoStack} stack
+	 * @param  {UndoStack} stack The UndoStack on which we perform
 	 * @return {undefined}
 	 */
 	function managerUndoRedo (which, manager, stack) {
