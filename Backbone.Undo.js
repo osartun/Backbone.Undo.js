@@ -431,7 +431,13 @@
 			break;
 			case 1: // change
 				if (undoTypesInstance[undoType] && _.isObject(fns)) {
-					_.extend(undoTypesInstance[undoType], fns);
+					// undoTypeInstance[undoType] may be a prototype's property
+					// So, if we did this _.extend(undoTypeInstance[undoType], fns)
+					// we would extend the object on the prototype which means
+					// that this change would have a global effect
+					// Instead we just want to manipulate this instance. That's why
+					// we're doing this:
+					undoTypesInstance[undoType] = _.extend({}, undoTypesInstance[undoType], fns);
 				} 
 			break;
 			case 2: // remove
