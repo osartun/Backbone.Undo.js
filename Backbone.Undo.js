@@ -167,7 +167,7 @@
 		 * @return {Array} An array of all the objects which are currently in the ObjectRegistry
 		 */
 		get: function () {
-			return (_.map(this.indexes, function (cid) {return this.registeredObjects[cid];}, this)).concat(this.registeredObjects);
+			return (_.map(this.cidIndexes, function (cid) {return this.registeredObjects[cid];}, this)).concat(this.registeredObjects);
 		}
 	}
 
