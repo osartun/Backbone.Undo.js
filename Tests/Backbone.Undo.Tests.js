@@ -202,3 +202,63 @@ asyncTest("Undo Redo Collection-Manipulation", 9, function () {
 
 	flushDeferQueue();
 })
+
+test("Registering, unregistering objects and getting registered objects", 3, function () {
+	var undoManager = new Backbone.UndoManager(),
+	objectRegistry = undoManager.objectRegistry,
+	model = new Backbone.Model(),
+	collection = new Backbone.Collection();
+
+	undoManager.register(model, collection);
+
+	equal(objectRegistry.get().length, 2, "The items were added and were able to get")
+
+	undoManager.unregister(model);
+
+	equal(objectRegistry.get().length, 1, "The model was successfully unregistered")
+
+	undoManager.unregister(collection);
+
+	equal(objectRegistry.get().length, 0, "The collection was successfully unregistered");
+})
+
+test("Merging Undo-Managers", 3, function () {
+	var main = new Backbone.UndoManager(),
+	special = new Backbone.UndoManager(),
+	model1 = new Backbone.Model({
+		"t": 1
+	}),
+	model2 = new Backbone.Model,
+	obj = {
+		object: model1,
+		before: {"a": 1},
+		after: {"b": 1}
+	};
+
+	main.id = main.stack.id = "main";
+	special.id = special.stack.id = "special";
+
+	special.startTracking();
+	main.startTracking();
+	
+	special.changeUndoType("change", {
+		"on": function () {
+			return obj;
+		}
+	});
+
+	special.register(model1);
+	main.register(model2);
+
+	special.merge(main);
+
+	model1.set("t", 2); // Here we're triggering a change event
+
+	// Now, the stack-length of main must have been changed
+	equal(main.stack.length, 1, "The specialized undomanager has written onto the main undomanager's stack")
+	deepEqual(main.stack.at(0).toJSON(), obj, "The action data was manipulated by the changed undotype")
+
+	model2.set("t", 2); // Here we're checking if the main undoManager can still write on its stack
+
+	deepEqual(main.stack.at(1).toJSON().after, {"t": 2}, "The main undomanager can still write on its own stack")
+})
