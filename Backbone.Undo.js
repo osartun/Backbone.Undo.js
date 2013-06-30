@@ -483,7 +483,8 @@
 	}),
 	UndoManager = Backbone.Model.extend({
 		defaults: {
-			maximumStackLength: Infinity
+			maximumStackLength: Infinity,
+			track: false
 		},
 		initialize: function (attr) {
 			this.stack = new UndoStack;
@@ -495,12 +496,16 @@
 			this.on("change:maximumStackLength", function (model, value) {
 				this.stack.setMaxLength(value);
 			}, this);
+
+			// Start tracking, if attr.track == true
+			this[(attr && attr.track ? "start" : "stop") + "Tracking"]();
 		},
 		/**
 		 * Starts tracking. Changes of registered objects won't be processed until you've called this function
 		 * @return {undefined}
 		 */
 		startTracking: function () {
+			this.set("track", true);
 			this.stack.track = true;
 		},
 		/**
@@ -508,6 +513,7 @@
 		 * @return {undefined}
 		 */
 		stopTracking: function () {
+			this.set("track", false);
 			this.stack.track = false;
 		},
 		/**
