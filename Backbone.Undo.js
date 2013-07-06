@@ -264,7 +264,7 @@
 	 */
 	function addToStack(stack, type, args, undoTypes) {
 		if (stack.track && !stack.isCurrentlyUndoRedoing && type in undoTypes) {
-			var res = apply(undoTypes[type]["on"], null, args), diff;
+			var res = apply(undoTypes[type]["on"], undoTypes[type], args), diff;
 			if (hasKeys(res, "object", "before", "after")) {
 				res.type = type;
 				res.cycleIndex = getCurrentCycleIndex();
@@ -289,6 +289,8 @@
 		}
 	}
 
+	function returnTrue() {return true;}
+
 	/**
 	 * Predefined UndoTypes object with default handlers for the most common events.
 	 * @type {Object}
@@ -307,13 +309,16 @@
 				}
 				collection.add(model, data.options);
 			},
+			"condition": returnTrue,
 			"on": function (model, collection, options) {
-				return {
-					object: collection,
-					before: undefined,
-					after: model,
-					options: _.clone(options)
-				};
+				if (this.condition(model, collection, options)) {
+					return {
+						object: collection,
+						before: undefined,
+						after: model,
+						options: _.clone(options)
+					};
+				}
 			}
 		},
 		"remove": {
@@ -327,13 +332,16 @@
 			"redo": function (collection, model, ignore, data) {
 				collection.remove(model, data.options);
 			},
+			"condition": returnTrue,
 			"on": function (model, collection, options) {
-				return {
-					object: collection,
-					before: model,
-					after: undefined,
-					options: _.clone(options)
-				};
+				if (this.condition(model,collection, options)) {
+					return {
+						object: collection,
+						before: model,
+						after: undefined,
+						options: _.clone(options)
+					};
+				}
 			}
 		},
 		"change": {
@@ -351,14 +359,17 @@
 					model.set(after);
 				}
 			},
+			"condition": returnTrue,
 			"on": function (model, options) {
-				var
-				changedAttributes = model.changedAttributes(),
-				previousAttributes = _.pick(model.previousAttributes(), _.keys(changedAttributes));
-				return {
-					object: model,
-					before: previousAttributes,
-					after: changedAttributes
+				if (this.condition(model, options)) {
+					var
+					changedAttributes = model.changedAttributes(),
+					previousAttributes = _.pick(model.previousAttributes(), _.keys(changedAttributes));
+					return {
+						object: model,
+						before: previousAttributes,
+						after: changedAttributes
+					};
 				}
 			}
 		},
