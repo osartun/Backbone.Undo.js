@@ -209,11 +209,10 @@
 	 * 
 	 * @param  {String} which Either "undo" or "redo"
 	 * @param  {Object} action The Action's attributes
-	 * @param  {OwnedUndoTypes} undoTypes The undoTypes-instance which has the "undo"/"redo" handler
 	 * @return {undefined}
 	 */
-	function actionUndoRedo (which, action, undoTypes) {
-		var type = action.type, fn = !undoTypes[type] || undoTypes[type][which];
+	function actionUndoRedo (which, action) {
+		var type = action.type, undoTypes = action.undoTypes, fn = !undoTypes[type] || undoTypes[type][which];
 		if (_.isFunction(fn)) {
 			fn(action.object, action.before, action.after, action);
 		}
@@ -247,7 +246,7 @@
 		actions = stack.where({"cycleIndex": action.get("cycleIndex")});
 		stack.pointer += (isUndo ? -1 : 1) * (actions.length - 1);
 		while (action = isUndo ? actions.pop() : actions.shift()) {
-			action[which](manager.undoTypes);
+			action[which]();
 		}
 		stack.isCurrentlyUndoRedoing = false;
 
@@ -269,6 +268,7 @@
 			if (hasKeys(res, "object", "before", "after")) {
 				res.type = type;
 				res.cycleIndex = getCurrentCycleIndex();
+				res.undoTypes = undoTypes;
 				if (stack.pointer < stack.length - 1) {
 					// New Actions must always be added to the end of the stack
 					// If the pointer is not pointed to the last action in the
@@ -460,7 +460,7 @@
 		 * @return {undefined}
 		 */
 		undo: function (undoTypes) {
-			actionUndoRedo("undo", this.attributes, undoTypes);
+			actionUndoRedo("undo", this.attributes);
 		},
 		/**
 		 * Redoes this action.
@@ -468,7 +468,7 @@
 		 * @return {undefined}
 		 */
 		redo: function (undoTypes) {
-			actionUndoRedo("redo", this.attributes, undoTypes);
+			actionUndoRedo("redo", this.attributes);
 		}
 	}),
 	UndoStack = Backbone.Collection.extend({
