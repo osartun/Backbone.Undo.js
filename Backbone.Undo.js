@@ -254,6 +254,23 @@
 	}
 
 	/**
+	 * This function checks whether an UndoAction should be created or not. Therefore 
+	 * it checks whether a "condition" property is set in the undoTypes-object of 
+	 * the specific event type. If not, it returns true. If it's set and a boolean, it 
+	 * returns it. If it's a function, it returns its result, converting it to a true 
+	 * boolean. If it's set, but neither a boolean nor a function, it returns true.
+	 * 
+	 * @param  {Object} undoTypesType The object within the UndoTypes that holds the function for this event type (i.e. "change")
+	 * @param  {Arguments} args       The arguments the "condition" function is called with
+	 * @return {Boolean}              True, if an UndoAction should be created
+	 */
+	function validateUndoActionCreation (undoTypesType, args) {
+		var condition = undoTypesType.condition, type = typeof condition;
+		return type === "function" ? !!apply(condition, undoTypesType, args) :
+			type === "boolean" ? condition : true;
+	}
+
+	/**
 	 * Adds an Undo-Action to the stack.
 	 * 
 	 * @param {UndoStack} stack
@@ -263,7 +280,8 @@
 	 * @return {undefined}
 	 */
 	function addToStack(stack, type, args, undoTypes) {
-		if (stack.track && !stack.isCurrentlyUndoRedoing && type in undoTypes) {
+		if (stack.track && !stack.isCurrentlyUndoRedoing && type in undoTypes &&
+			validateUndoActionCreation(undoTypes[type], args)) {
 			var res = apply(undoTypes[type]["on"], undoTypes[type], args), diff;
 			if (hasKeys(res, "object", "before", "after")) {
 				res.type = type;
@@ -289,7 +307,6 @@
 		}
 	}
 
-	function returnTrue() {return true;}
 
 	/**
 	 * Predefined UndoTypes object with default handlers for the most common events.
@@ -309,16 +326,13 @@
 				}
 				collection.add(model, data.options);
 			},
-			"condition": returnTrue,
 			"on": function (model, collection, options) {
-				if (this.condition(model, collection, options)) {
-					return {
-						object: collection,
-						before: undefined,
-						after: model,
-						options: _.clone(options)
-					};
-				}
+				return {
+					object: collection,
+					before: undefined,
+					after: model,
+					options: _.clone(options)
+				};
 			}
 		},
 		"remove": {
@@ -332,16 +346,13 @@
 			"redo": function (collection, model, ignore, data) {
 				collection.remove(model, data.options);
 			},
-			"condition": returnTrue,
 			"on": function (model, collection, options) {
-				if (this.condition(model,collection, options)) {
-					return {
-						object: collection,
-						before: model,
-						after: undefined,
-						options: _.clone(options)
-					};
-				}
+				return {
+					object: collection,
+					before: model,
+					after: undefined,
+					options: _.clone(options)
+				};
 			}
 		},
 		"change": {
@@ -359,18 +370,15 @@
 					model.set(after);
 				}
 			},
-			"condition": returnTrue,
 			"on": function (model, options) {
-				if (this.condition(model, options)) {
-					var
-					changedAttributes = model.changedAttributes(),
-					previousAttributes = _.pick(model.previousAttributes(), _.keys(changedAttributes));
-					return {
-						object: model,
-						before: previousAttributes,
-						after: changedAttributes
-					};
-				}
+				var
+				changedAttributes = model.changedAttributes(),
+				previousAttributes = _.pick(model.previousAttributes(), _.keys(changedAttributes));
+				return {
+					object: model,
+					before: previousAttributes,
+					after: changedAttributes
+				};
 			}
 		},
 		"reset": {
