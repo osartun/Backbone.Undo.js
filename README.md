@@ -63,7 +63,7 @@ In order to set up you UndoManager you have to do the following steps:
     collection = new Backbone.Collection;
     myUndoManager.register(model, collection); // You can pass several objects as arguments
     
-    // You can setting up your objects here. Changes won't be tracked yet.
+    // You can set up your objects here. Changes won't be tracked yet.
     model.set("foo", "bar");
     collection.add([{"something": "blue"}]);
     // These changes can't be undone.
