@@ -14,9 +14,9 @@
 	/**
 	 * As call is faster than apply, this is a faster version of apply as it uses call.
 	 * 
-	 * @param  {Function} fn The function to execute 
-	 * @param  {Object}   ctx The context the function should be called in
-	 * @param  {Array}    args The array of arguments that should be applied to the function
+	 * @param  {Function} fn 	The function to execute 
+	 * @param  {Object}   ctx 	The context the function should be called in
+	 * @param  {Array}    args 	The array of arguments that should be applied to the function
 	 * @return Forwards whatever the called function returns
 	 */
 	function apply (fn, ctx, args) {
@@ -28,8 +28,8 @@
 	/**
 	 * Uses slice on an array or an array-like object.
 	 * 
-	 * @param  {Array|Object} arr
-	 * @param  {Number} [index]
+	 * @param  {Array|Object} 	arr 	The array or array-like object.
+	 * @param  {Number} 		[index]	The index from where the array should be sliced. Default is 0.
 	 * @return {Array} The sliced array
 	 */
 	function slice (arr, index) {
@@ -44,9 +44,9 @@
 	 * or this way:
 	 * hasKeys(obj, "a", "b", "c")
 	 * 
-	 * @param  {Object}  obj The object to check on
-	 * @param  {Array}  keys The keys to check for
-	 * @return {Boolean} true, if the object has all those keys
+	 * @param  {Object}  	obj 	The object to check on
+	 * @param  {Array}  	keys 	The keys to check for
+	 * @return {Boolean} True, if the object has all those keys
 	 */
 	function hasKeys (obj, keys) {
 		if (obj == null) return false;
@@ -69,11 +69,11 @@
 		// attributes on a model all in sequence and yet all for
 		// example in one function, then several Undo-Actions are
 		// generated.
-		// If you want to undo your last Action, then only the last
-		// model would be removed from the collection or the last
-		// set attribute would be changed back to its previous value.
+		// If you want to undo your last action only the last model
+		// would be removed from the collection or the last set
+		// attribute would be changed back to its previous value.
 		// To prevent that we have to figure out a way to combine
-		// all those actions which happend "at the same time". 
+		// all those actions that happened "at the same time". 
 		// Timestamps aren't exact enough. A complex routine could 
 		// run several milliseconds and in that time produce a lot 
 		// of actions with different timestamps.
@@ -111,31 +111,28 @@
 		// (which Backbone objects typically have)
 		// it uses this cid as an index. That way
 		// the Array's length attribute doesn't 
-		// change and the object isn't really part 
-		// of the array as a list but of the array
-		// as an object.
-		// In case it doesn't have a cid it's 
-		// pushed as an Array-item.
+		// change and the object isn't an item 
+		// in the array, but an object-property.
+		// Otherwise it's added to the Array as an
+		// item.
+		// That way we can use the fast property-
+		// lookup and only have to fall back to 
+		// iterating over the array in case 
+		// non-Backbone-objects are registered.
 		this.registeredObjects = [];
-		this.cidIndexes = []; // Here, the cid-indexes are stored
+		// To return a list of all registered 
+		// objects in the 'get' method we have to
+		// store the objects that have a cid in
+		// an additional array. 
+		this.cidIndexes = [];
 	}
 	ObjectRegistry.prototype = {
 		/**
-		 * Returns whether the object is already registered in this ObjectRegistry or not.
-		 * 
-		 * @this {ObjectRegistry}
-		 * @param  {Object} obj The object to check
-		 * @return {Boolean} true if the object is already registered
-		 */
-		isRegistered: function (obj) {
-			return obj && obj.cid ? this.registeredObjects[obj.cid] : _.contains(this.registeredObjects, obj);
-		},
-		/**
 		 * Registeres an object in this ObjectRegistry.
 		 * 
-		 * @this {ObjectRegistry}
-		 * @param  {Object} obj The object to register
-		 * @return {undefined}
+		 * @this 	{ObjectRegistry}
+		 * @param  	{Object} 		 obj 	The object to register
+		 * @return 	{undefined}
 		 */
 		register: function (obj) {
 			if (obj && obj.cid) {
@@ -144,6 +141,19 @@
 			} else {
 				this.registeredObjects.push(obj);
 			}
+		},
+		/**
+		 * Returns whether the object is already registered in this ObjectRegistry or not.
+		 * 
+		 * @this 	{ObjectRegistry}
+		 * @param  	{Object} 		 obj 	The object to check
+		 * @return 	{Boolean} True if the object is already registered
+		 */
+		isRegistered: function (obj) {
+			// This is where we get a performance boost 
+			// by using the two different ways of storing 
+			// objects.
+			return obj && obj.cid ? this.registeredObjects[obj.cid] : _.contains(this.registeredObjects, obj);
 		},
 		/**
 		 * Unregisteres an object from this ObjectRegistry.
@@ -174,14 +184,13 @@
 	/**
 	 * Binds or unbinds the "all"-listener for one or more objects.
 	 * 
-	 * @param  {String}   which Either "on" or "off"
-	 * @param  {Object[]} objects Array of the objects on which the "all"-listener should be bound / unbound
-	 * @param  {Function} [fn] The function that should be bound / unbound. Optional in case of "off"
-	 * @param  {Object}   [ctx] The context the function should be called in
+	 * @param  {String}   which 	Either "on" or "off"
+	 * @param  {Object[]} objects 	Array of the objects on which the "all"-listener should be bound / unbound to
+	 * @param  {Function} [fn] 		The function that should be bound / unbound. Optional in case of "off"
+	 * @param  {Object}   [ctx] 	The context the function should be called in
 	 * @return {undefined}
 	 */
 	function onoff(which, objects, fn, ctx) {
-		// Binds or unbinds the "all" listener for one or more objects
 		for (var i = 0, l = objects.length, obj; i < l; i++) {
 			obj = objects[i];
 			if (!obj) continue;
@@ -207,8 +216,8 @@
 	/**
 	 * Calls the undo/redo-function for a specific action.
 	 * 
-	 * @param  {String} which Either "undo" or "redo"
-	 * @param  {Object} action The Action's attributes
+	 * @param  {String} which 	Either "undo" or "redo"
+	 * @param  {Object} action 	The Action's attributes
 	 * @return {undefined}
 	 */
 	function actionUndoRedo (which, action) {
@@ -219,19 +228,20 @@
 	}
 
 	/**
-	 * The main undo/redo function. Undoes / redoes all actions which 
-	 * have the same cycleIndex attribute as the action the stack-pointer 
-	 * is pointing to.
+	 * The main undo/redo function.
 	 * 
-	 * @param  {String} which Either "undo" or "redo"
-	 * @param  {UndoManager} manager The UndoManager-instance on which an "undo"/"redo"-Event is triggered afterwards
-	 * @param  {UndoStack} stack The UndoStack on which we perform
+	 * @param  {String} 		which 	Either "undo" or "redo"
+	 * @param  {UndoManager} 	manager	The UndoManager-instance on which an "undo"/"redo"-Event is triggered afterwards
+	 * @param  {UndoStack} 		stack 	The UndoStack on which we perform
+	 * @param  {Boolean} 		magic 	If true, undoes / redoes all actions with the same magicCondensationIndex
 	 * @return {undefined}
 	 */
-	function managerUndoRedo (which, manager, stack) {
+	function managerUndoRedo (which, manager, stack, magic) {
 		if (stack.isCurrentlyUndoRedoing || 
 			(which === "undo" && stack.pointer === -1) ||
 			(which === "redo" && stack.pointer === stack.length - 1)) {
+			// We're either currently in an undo- / redo-process or 
+			// we reached the end of the stack
 			return;
 		}
 		stack.isCurrentlyUndoRedoing = true;
@@ -246,6 +256,7 @@
 		actions = magic ? stack.where({"magicCondensationIndex": action.get("magicCondensationIndex")}) : [action];
 		stack.pointer += (isUndo ? -1 : 1) * (actions.length - 1);
 		while (action = isUndo ? actions.pop() : actions.shift()) {
+			// Here we're calling the Action's undo / redo method
 			action[which]();
 		}
 		stack.isCurrentlyUndoRedoing = false;
@@ -254,15 +265,15 @@
 	}
 
 	/**
-	 * This function checks whether an UndoAction should be created or not. Therefore 
-	 * it checks whether a "condition" property is set in the undoTypes-object of 
-	 * the specific event type. If not, it returns true. If it's set and a boolean, it 
-	 * returns it. If it's a function, it returns its result, converting it to a true 
-	 * boolean. If it's set, but neither a boolean nor a function, it returns true.
+	 * Checks whether an UndoAction should be created or not. Therefore it checks
+	 * whether a "condition" property is set in the undoTypes-object of the specific
+	 * event type. If not, it returns true. If it's set and a boolean, it returns it.
+	 * If it's a function, it returns its result, converting it into a boolean. 
+	 * Otherwise it returns true.
 	 * 
-	 * @param  {Object} undoTypesType The object within the UndoTypes that holds the function for this event type (i.e. "change")
-	 * @param  {Arguments} args       The arguments the "condition" function is called with
-	 * @return {Boolean}              True, if an UndoAction should be created
+	 * @param  {Object} 	undoTypesType 	The object within the UndoTypes that holds the function for this event type (i.e. "change")
+	 * @param  {Arguments} 	args       		The arguments the "condition" function is called with
+	 * @return {Boolean} 	True, if an UndoAction should be created
 	 */
 	function validateUndoActionCreation (undoTypesType, args) {
 		var condition = undoTypesType.condition, type = typeof condition;
@@ -273,22 +284,23 @@
 	/**
 	 * Adds an Undo-Action to the stack.
 	 * 
-	 * @param {UndoStack} stack
-	 * @param {String} type The event type (i.e. "change")
-	 * @param {Arguments} args The arguments passed to the undoTypes' "on"-handler
-	 * @param {OwnedUndoTypes} undoTypes The undoTypes-object which has the "on"-handler
+	 * @param {UndoStack} 		stack 		The undostack the action should be added to.
+	 * @param {String} 			type 		The event type (i.e. "change")
+	 * @param {Arguments} 		args 		The arguments passed to the undoTypes' "on"-handler
+	 * @param {OwnedUndoTypes} 	undoTypes 	The undoTypes-object which has the "on"-handler
 	 * @return {undefined}
 	 */
 	function addToStack(stack, type, args, undoTypes) {
 		if (stack.track && !stack.isCurrentlyUndoRedoing && type in undoTypes &&
 			validateUndoActionCreation(undoTypes[type], args)) {
+			// An UndoAction should be created
 			var res = apply(undoTypes[type]["on"], undoTypes[type], args), diff;
 			if (hasKeys(res, "object", "before", "after")) {
 				res.type = type;
 				res.magicCondensationIndex = getMagicCondensationIndex();
 				res.undoTypes = undoTypes;
 				if (stack.pointer < stack.length - 1) {
-					// New Actions must always be added to the end of the stack
+					// New Actions must always be added to the end of the stack.
 					// If the pointer is not pointed to the last action in the
 					// stack, presumably because actions were undone before, then
 					// all following actions must be discarded
@@ -399,11 +411,11 @@
 	};
 
 	/**
-	 * Every instance of the undo manager has an own undoTypes 
-	 * object which is an instance of OwnedUndoTypes whose 
-	 * prototype is the global UndoTypes object. By refering to the 
-	 * global UndoTypes object as the prototype changes to the global 
-	 * UndoTypes object take effect on every instance and yet every 
+	 * Every UndoManager instance has an own undoTypes object
+	 * which is an instance of OwnedUndoTypes. OwnedUndoTypes' 
+	 * prototype is the global UndoTypes object. Changes to the 
+	 * global UndoTypes object take effect on every instance of
+	 * UndoManager as the object is its prototype. And yet every 
 	 * local UndoTypes object can be changed individually.
 	 *
 	 * @constructor
@@ -415,12 +427,15 @@
 	 * Adds, changes or removes an undo-type from an UndoTypes-object.
 	 * You can call it this way:
 	 * manipulateUndoType (1, "reset", {"on": function () {}}, undoTypes)
-	 * or this way:
+	 * or this way to perform bulk actions:
 	 * manipulateUndoType (1, {"reset": {"on": function () {}}}, undoTypes)
+	 * In case of removing undo-types you can pass an Array for performing
+	 * bulk actions:
+	 * manipulateUndoType(2, ["reset", "change"], undoTypes)
 	 * 
-	 * @param  {Number} manipType Indicates the kind of action to execute: 0 for add, 1 for change, 2 for remove
-	 * @param  {String|Object|Array} undoType The type of undoType that should be added/changed/removed. Can be an object / array to perform bulk actions
-	 * @param  {Object} [fns] Object with the functions to add / change. Is optional in case you passed an object as undoType which contains these functions
+	 * @param  {Number} 				  manipType 		Indicates the kind of action to execute: 0 for add, 1 for change, 2 for remove
+	 * @param  {String|Object|Array} 	  undoType 			The type of undoType that should be added/changed/removed. Can be an object / array to perform bulk actions
+	 * @param  {Object} 				  [fns] 			Object with the functions to add / change. Is optional in case you passed an object as undoType that contains these functions
 	 * @param  {OwnedUndoTypes|UndoTypes} undoTypesInstance The undoTypes object to act on
 	 * @return {undefined}
 	 */
@@ -465,10 +480,16 @@
 		}
 	}
 
+	/**
+	 * Instantiating "Action" creates the UndoActions that 
+	 * are collected in an UndoStack. It holds all relevant 
+	 * data to undo / redo an action and has an undo / redo 
+	 * method.
+	 */
 	var Action = Backbone.Model.extend({
 		defaults: {
-			type: null, // "add", "change", etc.
-			object: null, // The object on which the action occured
+			type: null, // "add", "change", "reset", etc.
+			object: null, // The object on which the action occurred
 			before: null, // The previous values which were changed with this action
 			after: null, // The values after this action
 			magicCondensationIndex: null // The magicCondensationIndex helps to combine 
@@ -491,9 +512,13 @@
 			actionUndoRedo("redo", this.attributes);
 		}
 	}),
+	/**
+	 * An UndoStack is a collection of UndoActions in 
+	 * chronological order.
+	 */
 	UndoStack = Backbone.Collection.extend({
 		model: Action,
-		pointer: -1, // The pointer indicates the index where we are within the stack. We start at -1
+		pointer: -1, // The pointer indicates the index where we are located within the stack. We start at -1
 		track: false,
 		isCurrentlyUndoRedoing: false,
 		maximumStackLength: Infinity,
@@ -501,11 +526,22 @@
 			this.maximumStackLength = val;
 		}
 	}),
+	/**
+	 * An instance of UndoManager can keep track of 
+	 * changes to objects and helps to undo them.
+	 */
 	UndoManager = Backbone.Model.extend({
 		defaults: {
 			maximumStackLength: Infinity,
 			track: false
 		},
+		/**
+		 * The constructor function.
+		 * @param  {attr} 		[attr] Object with parameters. The available parameters are:
+		 *                         	   - maximumStackLength {number} 	Set the undo-stack's maximum size
+		 *                             - track 				{boolean}	Start tracking changes right away
+		 * @return {undefined}
+		 */
 		initialize: function (attr) {
 			this.stack = new UndoStack;
 			this.objectRegistry = new ObjectRegistry();
@@ -518,7 +554,9 @@
 			}, this);
 
 			// Start tracking, if attr.track == true
-			this[(attr && attr.track ? "start" : "stop") + "Tracking"]();
+			if (attr && attr.track) {
+				this.startTracking();
+			}
 		},
 		/**
 		 * Starts tracking. Changes of registered objects won't be processed until you've called this function
@@ -541,7 +579,7 @@
 		 * objects. It creates an UndoAction from the event and adds 
 		 * it to the stack.
 		 * 
-		 * @param  {String} type The event type
+		 * @param  {String} 	type 	The event type
 		 * @return {undefined}
 		 */
 		_addToStack: function (type) {
@@ -549,7 +587,7 @@
 		},
 		/**
 		 * Registers one or more objects to track their changes.
-		 * @param {...Object} obj The object whose changes should be tracked
+		 * @param {...Object} 	obj 	The object or objects of which changes should be tracked
 		 * @return {undefined}
 		 */
 		register: function () {
@@ -557,30 +595,32 @@
 		},
 		/**
 		 * Unregisters one or more objects.
-		 * @param {...Object} obj The object whose changes shouldn't be tracked any longer
+		 * @param {...Object} 	obj 	The object or objects of which changes shouldn't be tracked any longer
 		 * @return {undefined}
 		 */
 		unregister: function () {
 			onoff("off", arguments, this._addToStack, this);
 		},
 		/**
-		 * Undoes the last set of actions which were created during one "call cycle".
+		 * Undoes the last action or the last set of actions in case 'magic' is true.
+		 * @param {Boolean} 	[magic] 	If true, all actions that happened basically at the same time are undone together
 		 * @return {undefined}
 		 */
 		undo: function (magic) {
 			managerUndoRedo("undo", this, this.stack, magic);
 		},
 		/**
-		 * Redoes a previously undone set of actions.
+		 * Redoes a previously undone action or a set of actions.
+		 * @param {Boolean} 	[magic] 	If true, all actions that happened basically at the same time are redone together
 		 * @return {undefined}
 		 */
 		redo: function (magic) {
 			managerUndoRedo("redo", this, this.stack, magic);
 		},
 		/**
-		 * Checks if there's a set of actions in the stack which can be undone / redone
-		 * @param  {String} type Either "undo" or "redo"
-		 * @return {Boolean} true if there is a set of actions which can be undone / redone
+		 * Checks if there's an action in the stack that can be undone / redone
+		 * @param  {String} 	type 	Either "undo" or "redo"
+		 * @return {Boolean} True if there is a set of actions which can be undone / redone
 		 */
 		isAvailable: function (type) {
 			var s = this.stack, l = s.length;
@@ -593,7 +633,7 @@
 		},
 		/**
 		 * Sets the stack-reference to the stack of another undoManager.
-		 * @param  {UndoManager} undoManager The undoManager whose stack should be used
+		 * @param  {UndoManager} 	undoManager 	The undoManager whose stack should be used
 		 * @return {undefined}
 		 */
 		merge: function (undoManager) {
@@ -623,24 +663,58 @@
 				if (hasObjects) apply(this.register, this, registeredObjects);
 			}
 		},
+		/**
+		 * Add an UndoType to this specific UndoManager-instance.
+		 * @param {String} type The event this UndoType is made for
+		 * @param {Object} fns  An object of functions that are called to generate the data for an UndoAction or to process it. Must have the properties "undo", "redo" and "on". Can have the property "condition".
+		 * @return {undefined}
+		 */
 		addUndoType: function (type, fns) {
 			manipulateUndoType(0, type, fns, this.undoTypes);
 		},
+		/**
+		 * Overwrite properties of an existing UndoType for this specific UndoManager-instance.
+		 * @param  {String} type The event the UndoType is made for
+		 * @param  {Object} fns  An object of functions that are called to generate the data for an UndoAction or to process it. It extends the existing object.
+		 * @return {undefined}
+		 */
 		changeUndoType: function (type, fns) {
 			manipulateUndoType(1, type, fns, this.undoTypes);
 		},
+		/**
+		 * Remove one or more UndoTypes of this specific UndoManager-instance to fall back to the global UndoTypes.
+		 * @param  {String|Array} type The event the UndoType that should be removed is made for. You can also pass an array of events.
+		 * @return {undefined}
+		 */
 		removeUndoType: function (type) {
 			manipulateUndoType(2, type, undefined, this.undoTypes);
 		}
 	});
 
 	_.extend(UndoManager, {
+		/**
+		 * Add an UndoType to the global UndoTypes-object.
+		 * @param  {String} type The event this UndoType is made for
+		 * @param  {Object} fns  An object of functions that are called to generate the data for an UndoAction or to process it. Must have the properties "undo", "redo" and "on". Can have the property "condition".
+		 * @return {undefined}
+		 */
 		"addUndoType": function (type, fns) {
 			manipulateUndoType(0, type, fns, UndoTypes);
 		},
+		/**
+		 * Overwrite properties of an existing UndoType in the global UndoTypes-object.
+		 * @param  {String} type The event the UndoType is made for
+		 * @param  {Object} fns  An object of functions that are called to generate the data for an UndoAction or to process it. It extends the existing object.
+		 * @return {undefined}
+		 */
 		"changeUndoType": function (type, fns) {
 			manipulateUndoType(1, type, fns, UndoTypes)
 		},
+		/**
+		 * Remove one or more UndoTypes of this specific UndoManager-instance to fall back to the global UndoTypes.
+		 * @param  {String|Array} type The event the UndoType that should be removed is made for. You can also pass an array of events.
+		 * @return {undefined}
+		 */
 		"removeUndoType": function (type) {
 			manipulateUndoType(2, type, undefined, UndoTypes);
 		}
