@@ -602,6 +602,13 @@
 			onoff("off", arguments, this._addToStack, this);
 		},
 		/**
+		 * Unregisters all previously registered objects.
+		 * @return {undefined}
+		 */
+		unregisterAll: function () {
+			apply(this.unregister, this, this.objectRegistry.get());
+		},
+		/**
 		 * Undoes the last action or the last set of actions in case 'magic' is true.
 		 * @param {Boolean} 	[magic] 	If true, all actions that happened basically at the same time are undone together
 		 * @return {undefined}
