@@ -62,9 +62,9 @@
 	 * Returns a number that is unique per call stack. The number gets 
 	 * changed after the call stack has been completely processed.
 	 * 
-	 * @return {number} 
+	 * @return {number} MagicCondensationIndex
 	 */
-	var getCurrentCycleIndex = (function () {
+	var getMagicCondensationIndex = (function () {
 		// If you add several models to a collection or set several
 		// attributes on a model all in sequence and yet all for
 		// example in one function, then several Undo-Actions are
@@ -80,22 +80,22 @@
 		// Instead we take advantage of the single-threadedness of
 		// JavaScript:
 
-		var cycleWasIndexed = false, cycleIndex = -1;
+		var callstackWasIndexed = false, magicCondensationIndex = -1;
 		function indexCycle() {
-			cycleIndex++;
-			cycleWasIndexed = true;
+			magicCondensationIndex++;
+			callstackWasIndexed = true;
 			_.defer(function () {
 				// Here comes the magic. With a Timeout of 0 
 				// milliseconds this function gets called whenever
-				// the current call stack is completely processed
-				cycleWasIndexed = false;
+				// the current callstack is completed
+				callstackWasIndexed = false;
 			})
 		}
 		return function () {
-			if (!cycleWasIndexed) {
+			if (!callstackWasIndexed) {
 				indexCycle();
 			}
-			return cycleIndex|0; // Make this a true integer
+			return magicCondensationIndex;
 		}
 	})();
 
@@ -243,7 +243,7 @@
 			stack.pointer++;
 			action = stack.at(stack.pointer);
 		}
-		actions = stack.where({"cycleIndex": action.get("cycleIndex")});
+		actions = magic ? stack.where({"magicCondensationIndex": action.get("magicCondensationIndex")}) : [action];
 		stack.pointer += (isUndo ? -1 : 1) * (actions.length - 1);
 		while (action = isUndo ? actions.pop() : actions.shift()) {
 			action[which]();
@@ -285,7 +285,7 @@
 			var res = apply(undoTypes[type]["on"], undoTypes[type], args), diff;
 			if (hasKeys(res, "object", "before", "after")) {
 				res.type = type;
-				res.cycleIndex = getCurrentCycleIndex();
+				res.magicCondensationIndex = getMagicCondensationIndex();
 				res.undoTypes = undoTypes;
 				if (stack.pointer < stack.length - 1) {
 					// New Actions must always be added to the end of the stack
@@ -471,7 +471,8 @@
 			object: null, // The object on which the action occured
 			before: null, // The previous values which were changed with this action
 			after: null, // The values after this action
-			cycleIndex: null // The cycle index is to combine all actions which happend "at once" to undo/redo them altogether
+			magicCondensationIndex: null // The magicCondensationIndex helps to combine 
+			// all actions that occurred "at the same time" to undo/redo them altogether
 		},
 		/**
 		 * Undoes this action.
@@ -566,15 +567,15 @@
 		 * Undoes the last set of actions which were created during one "call cycle".
 		 * @return {undefined}
 		 */
-		undo: function () {
-			managerUndoRedo("undo", this, this.stack);
+		undo: function (magic) {
+			managerUndoRedo("undo", this, this.stack, magic);
 		},
 		/**
 		 * Redoes a previously undone set of actions.
 		 * @return {undefined}
 		 */
-		redo: function () {
-			managerUndoRedo("redo", this, this.stack);
+		redo: function (magic) {
+			managerUndoRedo("redo", this, this.stack, magic);
 		},
 		/**
 		 * Checks if there's a set of actions in the stack which can be undone / redone
