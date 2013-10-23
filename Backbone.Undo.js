@@ -366,28 +366,60 @@
 			}
 		},
 		"change": {
-			"undo": function (model, before, after) {
+			"undo": function (model, before, after, options) {
 				if (_.isEmpty(before)) {
 					_.each(_.keys(after), model.unset, model);
 				} else {
 					model.set(before);
+					if (options && options.unset && options.unset.before && options.unset.before.length) {
+						_.each(options.unset.before, model.unset, model);
+					}
 				}
 			},
-			"redo": function (model, before, after) {
+			"redo": function (model, before, after, options) {
 				if (_.isEmpty(after)) {
 					_.each(_.keys(before), model.unset, model);
 				} else {
 					model.set(after);
+					if (options && options.unset && options.unset.after && options.unset.after.length) {
+						_.each(options.unset.after, model.unset, model);
+					}
 				}
 			},
 			"on": function (model, options) {
 				var
-				changedAttributes = model.changedAttributes(),
-				previousAttributes = _.pick(model.previousAttributes(), _.keys(changedAttributes));
+				afterAttributes = model.changedAttributes(),
+				keysAfter = _.keys(afterAttributes),
+				previousAttributes = _.pick(model.previousAttributes(), keysAfter),
+				keysPrevious = _.keys(previousAttributes),
+				unset = (options || (options = {})).unset = {
+					after: [],
+					before: []
+				};
+
+				if (keysAfter.length != keysPrevious.length) {
+					// There are new attributes or old attributes have been unset
+					if (keysAfter.length > keysPrevious.length) {
+						// New attributes have been added
+						_.each(keysAfter, function (val) {
+							if (!(val in previousAttributes)) {
+								unset.before.push(val);
+							}
+						}, this);
+					} else {
+						// Old attributes have been unset
+						_.each(keysPrevious, function (val) {
+							if (!(val in afterAttributes)) {
+								unset.after.push(val);
+							}
+						})
+					}
+				}
 				return {
 					object: model,
 					before: previousAttributes,
-					after: changedAttributes
+					after: afterAttributes,
+					options: _.clone(options)
 				};
 			}
 		},
