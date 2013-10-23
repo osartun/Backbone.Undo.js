@@ -739,6 +739,14 @@
 
 	_.extend(UndoManager, {
 		/**
+		 * Change the UndoManager's default attributes
+		 * @param  {Object} defaultAttributes An object with the new default values.
+		 * @return {undefined}
+		 */
+		defaults: function (defaultAttributes) {
+			_.extend(UndoManager.prototype.defaults, defaultAttributes);
+		},
+		/**
 		 * Add an UndoType to the global UndoTypes-object.
 		 * @param  {String} type The event this UndoType is made for
 		 * @param  {Object} fns  An object of functions that are called to generate the data for an UndoAction or to process it. Must have the properties "undo", "redo" and "on". Can have the property "condition".
