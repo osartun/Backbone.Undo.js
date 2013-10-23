@@ -223,7 +223,7 @@
 	function actionUndoRedo (which, action) {
 		var type = action.type, undoTypes = action.undoTypes, fn = !undoTypes[type] || undoTypes[type][which];
 		if (_.isFunction(fn)) {
-			fn(action.object, action.before, action.after, action);
+			fn(action.object, action.before, action.after, action.options);
 		}
 	}
 
@@ -326,17 +326,16 @@
 	 */
 	var UndoTypes = {
 		"add": {
-			"undo": function (collection, ignore, model, data) {
+			"undo": function (collection, ignore, model, options) {
 				// Undo add = remove
-				collection.remove(model, data.options);
+				collection.remove(model, options);
 			},
-			"redo": function (collection, ignore, model, data) {
+			"redo": function (collection, ignore, model, options) {
 				// Redo add = add
-				var options = data.options;
 				if (options.index) {
 					options.at = options.index;
 				}
-				collection.add(model, data.options);
+				collection.add(model, options);
 			},
 			"on": function (model, collection, options) {
 				return {
@@ -348,15 +347,14 @@
 			}
 		},
 		"remove": {
-			"undo": function (collection, model, ignore, data) {
-				var options = data.options;
-				if (options.index) {
+			"undo": function (collection, model, ignore, options) {
+				if ("index" in options) {
 					options.at = options.index;
 				}
 				collection.add(model, options);
 			},
-			"redo": function (collection, model, ignore, data) {
-				collection.remove(model, data.options);
+			"redo": function (collection, model, ignore, options) {
+				collection.remove(model, options);
 			},
 			"on": function (model, collection, options) {
 				return {
