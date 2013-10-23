@@ -587,6 +587,15 @@
 			if (attr && attr.track) {
 				this.startTracking();
 			}
+
+			// Register objects passed in the "register" attribute
+			if (attr && attr.register) {
+				if (_.isArray(attr.register) || _.isArguments(attr.register)) {
+					apply(this.register, this, attr.register);
+				} else {
+					this.register(attr.register);
+				}
+			}
 		},
 		/**
 		 * Starts tracking. Changes of registered objects won't be processed until you've called this function
