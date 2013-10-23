@@ -172,7 +172,7 @@
 			}
 		},
 		/**
-		 * Returns an array of all the objects which are currently in this ObjectRegistry.
+		 * Returns an array of all objects that are currently in this ObjectRegistry.
 		 * 
 		 * @return {Array} An array of all the objects which are currently in the ObjectRegistry
 		 */
