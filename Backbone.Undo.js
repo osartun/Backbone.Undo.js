@@ -685,7 +685,7 @@
 		},
 		/**
 		 * Sets the stack-reference to the stack of another undoManager.
-		 * @param  {UndoManager} 	undoManager 	The undoManager whose stack should be used
+		 * @param  {UndoManager} 	undoManager 	The undoManager whose stack-reference is set to this stack
 		 * @return {undefined}
 		 */
 		merge: function (undoManager) {
@@ -708,10 +708,10 @@
 				// unregister already registered objects
 				var registeredObjects = this.objectRegistry.get();
 				this.unregisterAll();
-				// replace the stack reference
-				this.stack = undoManager.stack;
 				// register the just unregistered objects, now on the new stack
 				apply(this.register, this, registeredObjects);
+					// set the stack reference to our stack
+					manager.stack = this.stack;
 			}
 		},
 		/**
