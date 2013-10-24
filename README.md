@@ -203,7 +203,7 @@ Backbone.Undo.js uses Backbone's events to generate UndoActions. It has built-in
 *   `add` When a model is added to a collection
 *   `remove` When a model is removed from a collection
 *   `reset` When a collection is reset and all models are replaced by new models (or no models) at once
-*   `change` When an attribute of a model was changed
+*   `change` When a model's attribute is changed or set
 
 ### Supporting other events and modifying built-in behavior
 
@@ -371,65 +371,6 @@ Pass an array to perform a bulk action:
 If you just want to suspend an UndoType for a limited amount of time, making use of the `"condition"` property might be more adequate:
 
 	Backbone.Undo.changeUndoType("reset", {"condition": false});
-
-## Problems that may occur
-
-Backbone.Undo.js is not made to be called within your code. It has an internal mechanism which figures out 
-which Undo-Actions were generated in the same call cycle. 
-This mechanism is great for usability (see above, *Advantages of Backbone.Undo.js*). However this mechanism 
-makes it impossible to call `undo()` or `redo()` within a codeblock. Imagine this:
-    
-    model.get("foo"); // "bar"
-    
-    // Several changes:
-    model.set("foo", "baz");
-    model.set("foo", "qux");
-    model.set("foo", 42);
-    model.set("foo", {})
-    
-    // One call to `undo`:
-    myUndoManager.undo();
-    model.get("foo"); // Is "bar" instead of 42
-    
-Calling `undo()` resets `"foo"` to `"bar"` instead of `42`, because it had figured out that the four `set`s happened in 
-one call cycle.
-If you want to call `undo()` within your code and each time only want to undo the latest change you have to call the 
-changes to the model asynchronously.
-
-    model.get("foo");
-    
-    // Several changes:
-    _.defer(function () {
-        model.set("foo", "baz");
-        
-        _.defer(function () {
-            model.set("foo", "qux");
-            
-            _.defer(function () {
-                model.set("foo", 42);
-                
-                _.defer(function () {
-                    model.set("foo", {});
-                    
-                    myUndoManager.undo();
-                    model.get("foo") // 42
-                    
-                    myUndoManager.undo();
-                    model.get("foo") // "qux"
-                    
-                    myUndoManager.undo();
-                    model.get("foo") // "baz"
-                    
-                    myUndoManager.undo();
-                    model.get("foo") // "bar"
-                })
-            })
-        })
-    })
-    
-Obviously noone would ever do that. In fact you also shouldn't do that: Your webapp shouldn't have any reference to the 
-undo-manager within your code. Try to develop it independently from the undo-manager and then add an 
-undo-manager-controller which for example binds the undo/redo-calls to Shortcuts like ctrl+Z.
 
 ## License (MIT License)
 
