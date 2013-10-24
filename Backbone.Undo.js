@@ -696,13 +696,9 @@
 			// several others for special, exceptional cases (by using
 			// instance-based custom UndoTypes). Models / collections 
 			// which need this special treatment are only registered at 
-			// these special undoManagers. These special ones are then 
-			// merged with the main-undoManagers to write on its stack. 
+			// those special undoManagers. Those special ones are then 
+			// merged into the main-undoManager to write on its stack. 
 			// That way it's easier to manage exceptional cases.
-
-			// Please note: It's way faster to first merge an undoManager
-			// with another one and then register all objects than the
-			// other way round.
 			if (undoManager instanceof UndoManager &&
 				undoManager.stack instanceof UndoStack) {
 				// unregister already registered objects
