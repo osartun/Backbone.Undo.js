@@ -128,21 +128,6 @@
 	}
 	ObjectRegistry.prototype = {
 		/**
-		 * Registeres an object in this ObjectRegistry.
-		 * 
-		 * @this 	{ObjectRegistry}
-		 * @param  	{Object} 		 obj 	The object to register
-		 * @return 	{undefined}
-		 */
-		register: function (obj) {
-			if (obj && obj.cid) {
-				this.registeredObjects[obj.cid] = obj;
-				this.cidIndexes.push(obj.cid);
-			} else {
-				this.registeredObjects.push(obj);
-			}
-		},
-		/**
 		 * Returns whether the object is already registered in this ObjectRegistry or not.
 		 * 
 		 * @this 	{ObjectRegistry}
@@ -156,20 +141,43 @@
 			return obj && obj.cid ? this.registeredObjects[obj.cid] : _.contains(this.registeredObjects, obj);
 		},
 		/**
-		 * Unregisteres an object from this ObjectRegistry.
+		 * Registers an object in this ObjectRegistry.
+		 * 
+		 * @this 	{ObjectRegistry}
+		 * @param  	{Object} 		 obj 	The object to register
+		 * @return 	{undefined}
+		 */
+		register: function (obj) {
+			if (!this.isRegistered(obj)) {
+				if (obj && obj.cid) {
+					this.registeredObjects[obj.cid] = obj;
+					this.cidIndexes.push(obj.cid);
+				} else {
+					this.registeredObjects.push(obj);
+				}
+				return true;
+			}
+			return false;
+		},
+		/**
+		 * Unregisters an object from this ObjectRegistry.
 		 * 
 		 * @this {ObjectRegistry}
 		 * @param  {Object} obj The object to unregister
 		 * @return {undefined}
 		 */
 		unregister: function (obj) {
-			if (obj && obj.cid) {
-				delete this.registeredObjects[obj.cid];
-				this.cidIndexes.splice(_.indexOf(this.cidIndexes, obj.cid), 1);
-			} else {
-				var i = _.indexOf(this.registeredObjects, obj);
-				this.registeredObjects.splice(i, 1);
+			if (this.isRegistered(obj)) {
+				if (obj && obj.cid) {
+					delete this.registeredObjects[obj.cid];
+					this.cidIndexes.splice(_.indexOf(this.cidIndexes, obj.cid), 1);
+				} else {
+					var i = _.indexOf(this.registeredObjects, obj);
+					this.registeredObjects.splice(i, 1);
+				}
+				return true;
 			}
+			return false;
 		},
 		/**
 		 * Returns an array of all objects that are currently in this ObjectRegistry.
@@ -195,16 +203,14 @@
 			obj = objects[i];
 			if (!obj) continue;
 			if (which === "on") {
-				if (ctx.objectRegistry.isRegistered(obj)) {
+				if (!ctx.objectRegistry.register(obj)) {
+					// register returned false, so obj was already registered
 					continue;
-				} else {
-					ctx.objectRegistry.register(obj);
 				}
 			} else {
-				if (!ctx.objectRegistry.isRegistered(obj)) {
+				if (!ctx.objectRegistry.unregister(obj)) {
+					// unregister returned false, so obj wasn't registered
 					continue;
-				} else {
-					ctx.objectRegistry.unregister(obj);
 				}
 			}
 			if (_.isFunction(obj[which])) {
