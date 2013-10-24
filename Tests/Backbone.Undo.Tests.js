@@ -1,30 +1,51 @@
-
-var deferQueue = [];
-function defer(fn) {
-	var args = [].slice.call(arguments);
-	deferQueue.push(fn, args);
-}
-function flushDeferQueue() {
-	_.defer(function () {
-		var fn = deferQueue.shift(),
-			args = deferQueue.shift();
-		if (fn) {
-			fn.apply(null, args);
-			flushDeferQueue();
-		}
-	})
-}
-
-test("Start and stop tracking", function () {
+test("Register and unregister", function () {
 	var UndoManager = new Backbone.UndoManager;
 
+	var model = new Backbone.Model,
+	collection = new Backbone.Collection;
+
+	UndoManager.register(model, collection);
+
+	function getRegisteredObjects () {
+		return UndoManager.objectRegistry.get();
+	}
+
+	strictEqual(getRegisteredObjects().length, 2, "Registering objects with the register method was successful");
+
+	UndoManager.unregister(model);
+
+	deepEqual(getRegisteredObjects(), [collection], "Unregistering an object with the unregister method was successful");
+
+	UndoManager.register(model);
+	UndoManager.unregisterAll();
+
+	strictEqual(getRegisteredObjects().length, 0, "The unregisterAll function worked properly");
+
+	var u1 = new Backbone.UndoManager({
+		register: model
+	}),
+	u2 = new Backbone.UndoManager({
+		register: collection
+	}),
+	u3 = new Backbone.UndoManager({
+		register: [model, collection]
+	});
+
+	deepEqual(u1.objectRegistry.get(), [model], "Registering a single model over the 'register' attribute on instantiation was successful");
+	deepEqual(u2.objectRegistry.get(), [collection], "Registering a single collection over the 'register' attribute on instantiation was successful");
+	deepEqual(u3.objectRegistry.get(), [model, collection], "Registering multiple objects over the 'register' attribute on instantiation was successful");
+})
+
+test("Start and stop tracking", function () {
 	var model = new Backbone.Model({
 		"foo": "bar"
 	})
 
 	var collection = new Backbone.Collection([{"a": "b"}, {"c": "d"}]);
 
-	UndoManager.register(model, collection);
+	var UndoManager = new Backbone.UndoManager({
+		register: [model, collection]
+	});
 
 	var before = UndoManager.stack.length;
 
@@ -44,7 +65,7 @@ test("Start and stop tracking", function () {
 
 	UndoManager.stopTracking();
 
-	model.set("hello", "jude");
+	model.set("hello", "kitty");
 	collection.add({"e": "f"});
 	model.set("hello", "you");
 	collection.remove(collection.last());
@@ -52,179 +73,171 @@ test("Start and stop tracking", function () {
 	UndoManager.startTracking();
 
 	strictEqual(UndoManager.stack.length, after, "No actions were added, because tracking was paused");
-})
 
-asyncTest("Undo Redo Model-Changes", 7, function () {
-	var UndoManager = new Backbone.UndoManager,
-	model = new Backbone.Model({
+	UndoManager.unregisterAll();
+
+	UndoManager = new Backbone.UndoManager({track: true});
+
+	UndoManager.register(model, collection);
+
+	model.set("hello", "hello");
+	collection.add({"g": "h"});
+
+	strictEqual(UndoManager.stack.length, 2, "{track:true} on instantiation started tracking at once");
+});
+
+test("Undo and redo Model-Changes", function () {
+	var model = new Backbone.Model({
 		"t": 1
-	}), i;
+	});
 
-	UndoManager.register(model);
-	UndoManager.startTracking();
+	var UndoManager = new Backbone.UndoManager({
+		track: true,
+		register: model
+	});
 
 	model.set("t", 2);
 
-	deepEqual(model.toJSON(), {"t": 2}, "The model wasn't changed by the UndoManager yet");
-
 	UndoManager.undo();
 
-	deepEqual(model.toJSON(), {"t": 1}, "Undoing the last action changed the model expectedly");
+	deepEqual(model.toJSON(), {"t": 1}, "Undoing changing a model attribute was successful");
 
 	UndoManager.redo();
 
-	deepEqual(model.toJSON(), {"t": 2}, "Redoing the last action changed the model expectedly")
+	deepEqual(model.toJSON(), {"t": 2}, "Redoing changing a model attribute was successful");
 
-	defer(function () {
-		start();
-		// Undo / Redo several changes
-		for (i = 3; i < 10; i++) {
-			model.set("t", i);
-		}
+	model.set("x", 1);
 
-		UndoManager.undo();
+	UndoManager.undo();
 
-		equal(model.get("t"), 2, "Undoing all actions of one cycle succeeded");
+	deepEqual(model.toJSON(), {"t": 2}, "Undoing setting a model attribute was successful");
 
-		UndoManager.redo();
+	UndoManager.redo();
 
-		equal(model.get("t"), 9, "Redoing all actions of one cycle succeeded");
-		stop();
+	deepEqual(model.toJSON(), {"t": 2, "x": 1}, "Redoing setting a model attribute was successful");
+
+	model.set({
+		"y": 1,
+		"x": 2
 	})
 
-	defer(function () {
-		start();
-		// Undo newly set model-attributes
-		var before = model.toJSON();
+	UndoManager.undo();
 
-		model.set("new attribute", "Hi, what's up?");
+	deepEqual(model.toJSON(), {"t": 2, "x": 1}, "Undoing multiple changes at once was successful");
 
-		var after = model.toJSON();
+	UndoManager.redo();
 
-		UndoManager.undo();
+	deepEqual(model.toJSON(), {"t": 2, "x": 2, "y": 1}, "Redoing multiple changes at once was successful");
 
-		deepEqual(model.toJSON(), before, "Unsetting a new attribute by undoing its initial set succeeded");
+	UndoManager.undo();
+	UndoManager.undo();
+	UndoManager.undo();
 
-		UndoManager.redo();
+	deepEqual(model.toJSON(), {"t": 1}, "Calling undo consecutively several times was successful");
 
-		deepEqual(model.toJSON(), after, "Setting a new attribute by redoing its unsetting succeeded");
-	})
+	UndoManager.undo();
 
-	flushDeferQueue();
-});
+	deepEqual(model.toJSON(), {"t": 1}, "Additional undo calls that would be out of the stack's bounds were successfully ignored");
 
-asyncTest("Undo Redo Collection-Manipulation", 9, function () {
-	var UndoManager = new Backbone.UndoManager({"log":true}),
-	collection = new Backbone.Collection([{"t": 1}, {"t": 2}, {"t": 3}]);
+	UndoManager.redo();
+	UndoManager.redo();
+	UndoManager.redo();
 
-	function isSortOrderCorrect(c) {
-		for (var i = 1, l = c.length; i < l; i++) {
-			if (c.at(i).get("t") < c.at(i - 1).get("t")) {
-				return false;
-			}
-		}
-		return true;
-	} 
+	deepEqual(model.toJSON(), {"t": 2, "x": 2, "y": 1}, "Calling redo consecutively several times was successful");
 
-	UndoManager.register(collection);
-	UndoManager.startTracking();
+	UndoManager.redo();
+
+	deepEqual(model.toJSON(), {"t": 2, "x": 2, "y": 1}, "Additional redo calls that would be out of the stack's bounds were successfully ignored");	
+})
+
+test("Undo and redo Collection-changes", function () {
+	var collection = new Backbone.Collection([{"t": 1}, {"t": 2}, {"t": 3}]),
+	UndoManager = new Backbone.UndoManager({
+		track: true,
+		register: collection
+	});
 
 	collection.add({"t": 4});
 
-	equal(collection.length, 4, "The collection wasn't changed by the UndoManager");
-
 	UndoManager.undo();
 
-	equal(collection.length, 3, "Undoing adding a single model succeeded");
+	deepEqual(collection.toJSON(), [{"t": 1}, {"t": 2}, {"t": 3}], "Adding a model to the collection was successfully undone");
 
 	UndoManager.redo();
 
-	equal(collection.length, 4, "Redoing adding a single model succeeded");
+	deepEqual(collection.toJSON(), [{"t": 1}, {"t": 2}, {"t": 3}, {"t": 4}], "Adding a model to the collection was successfully redone");
 
-	defer(function () {
-		start();
-		collection.add([{"t": 5}, {"t": 6}]);
+	collection.remove(collection.first());
 
-		UndoManager.undo();
+	UndoManager.undo();
 
-		equal(collection.length, 4, "Undoing adding several models succeeded");
+	deepEqual(collection.toJSON(), [{"t": 1}, {"t": 2}, {"t": 3}, {"t": 4}], "Removing a model from the collection was successfully undone");
 
-		UndoManager.redo();
+	UndoManager.redo();
 
-		equal(collection.length, 6, "Redoing adding several models succeeded");
-		stop();
-	})
+	deepEqual(collection.toJSON(), [{"t": 2}, {"t": 3}, {"t": 4}], "Removing a model from the collection was successfully redone");
 
-	defer(function () {
-		start();
-		collection.add({"t": 7});
+	collection.reset([{"a": 1}, {"a": 2}, {"a": 3}]);
 
-		UndoManager.undo();
+	UndoManager.undo();
 
-		collection.add({"t": 8});
+	deepEqual(collection.toJSON(), [{"t": 2}, {"t": 3}, {"t": 4}], "Resetting the collection was successfully undone");
 
-		var length = collection.length;
+	UndoManager.redo();
 
-		UndoManager.redo();
+	deepEqual(collection.toJSON(), [{"a": 1}, {"a": 2}, {"a": 3}], "Resetting the collection was successfully redone");
 
-		equal(collection.length, length, "Redoing an action after the collection was changed had no effect");
-		stop();
-	})
+	collection.first().destroy();
 
-	defer(function () {
-		start();
-		var current = collection.toJSON();
+	UndoManager.undo();
 
-		collection.remove(collection.at(3));
+	deepEqual(collection.toJSON(), [{"a": 1}, {"a": 2}, {"a": 3}], "Destroying a model in the collection was successfully undone");
 
-		UndoManager.undo();
+	UndoManager.redo();
 
-		deepEqual(collection.toJSON(), current, "The removed model was put back at the index where it was");
-		stop();
-	})
-
-	defer(function () {
-		start();
-		var before = collection.toJSON();
-
-		collection.reset([{"x": 1}, {"x": 2}]);
-
-		var after = collection.toJSON();
-
-		UndoManager.undo();
-
-		deepEqual(collection.toJSON(), before, "Undoing a reset succeeded");
-
-		UndoManager.redo();
-
-		deepEqual(collection.toJSON(), after, "Redoing a reset succeeded");
-	})
-
-	flushDeferQueue();
+	deepEqual(collection.toJSON(), [{"a": 2}, {"a": 3}], "Destroying a model in the collection was successfully redone");
 })
 
-test("Registering, unregistering objects and getting registered objects", 3, function () {
-	var undoManager = new Backbone.UndoManager(),
-	objectRegistry = undoManager.objectRegistry,
-	model = new Backbone.Model(),
-	collection = new Backbone.Collection();
+test("ObjectRegistry", function () {
+	var model = new Backbone.Model,
+	collection = new Backbone.Collection,
+	nonBackboneObject = {"something":"else"},
+	UndoManager = new Backbone.UndoManager,
+	objectRegistry = UndoManager.objectRegistry;
 
-	undoManager.register(model, collection);
+	function compare (arr1, arr2) {
+		return _.all(arr1, function (v) {
+			return _.contains(arr2, v);
+		});
+	}
 
-	equal(objectRegistry.get().length, 2, "The items were added and were able to get")
+	objectRegistry.register(model);
 
-	undoManager.unregister(model);
+	ok(objectRegistry.isRegistered(model), "The isRegistered method returns true");
 
-	equal(objectRegistry.get().length, 1, "The model was successfully unregistered")
+	objectRegistry.register(collection);
 
-	undoManager.unregister(collection);
+	ok(compare(objectRegistry.get(), [model, collection]), "The get method rightfully returns a list of the registered objects");
 
-	equal(objectRegistry.get().length, 0, "The collection was successfully unregistered");
+	objectRegistry.register(model);
+	objectRegistry.register(collection);
+
+	equal(objectRegistry.get().length, 2, "Redundant registrations are correctly ignored");
+
+	objectRegistry.register(nonBackboneObject);
+
+	ok(compare(objectRegistry.get(), [model, collection, nonBackboneObject]), "Non-Backbone objects are also correctly registered");
+
+	objectRegistry.unregister(model);
+	objectRegistry.unregister(collection);
+	objectRegistry.unregister(nonBackboneObject);
+
+	equal(objectRegistry.get().length, 0, "Unregistering objects works properly");
 })
 
-test("Merging Undo-Managers", 3, function () {
-	var main = new Backbone.UndoManager(),
-	special = new Backbone.UndoManager(),
+test("Merging UndoManagers", 2, function () {
+	var main = new Backbone.UndoManager({track:true}),
+	special = new Backbone.UndoManager({track:true}),
 	model1 = new Backbone.Model({
 		"t": 1
 	}),
@@ -237,9 +250,6 @@ test("Merging Undo-Managers", 3, function () {
 
 	main.id = main.stack.id = "main";
 	special.id = special.stack.id = "special";
-
-	special.startTracking();
-	main.startTracking();
 	
 	special.changeUndoType("change", {
 		"on": function () {
@@ -250,15 +260,76 @@ test("Merging Undo-Managers", 3, function () {
 	special.register(model1);
 	main.register(model2);
 
-	special.merge(main);
+	main.merge(special);
 
 	model1.set("t", 2); // Here we're triggering a change event
 
 	// Now, the stack-length of main must have been changed
-	equal(main.stack.length, 1, "The specialized undomanager has written onto the main undomanager's stack")
 	deepEqual(main.stack.at(0).toJSON(), obj, "The action data was manipulated by the changed undotype")
 
 	model2.set("t", 2); // Here we're checking if the main undoManager can still write on its stack
 
 	deepEqual(main.stack.at(1).toJSON().after, {"t": 2}, "The main undomanager can still write on its own stack")
+})
+
+/**
+ * Async tests for magic condensation
+ */
+
+var deferQueue = [];
+function defer(fn) {
+	var args = [].slice.call(arguments);
+	deferQueue.push(fn, args);
+}
+function flushDeferQueue() {
+	_.defer(function () {
+		var fn = deferQueue.shift(),
+			args = deferQueue.shift();
+		if (fn) {
+			fn.apply(null, args);
+			flushDeferQueue();
+		}
+	})
+}
+
+asyncTest("Magic Condensation", 4, function () {
+	var model = new Backbone.Model({
+		"t": 1
+	}), collection = new Backbone.Collection([{"a": 3}]),
+	UndoManager = new Backbone.UndoManager({
+		track: true,
+		register: [model, collection]
+	}), i;
+
+	defer(function () {
+		start();
+		// Undo / Redo several changes
+		for (i = 3; i < 10; i++) {
+			model.set("t", i);
+		}
+
+		UndoManager.undo(true);
+
+		equal(model.get("t"), 1, "Undoing all changes that happened on a model at once succeeded");
+
+		UndoManager.redo(true);
+
+		equal(model.get("t"), 9, "Redoing all changes that happened on a model at once succeeded");
+	})
+
+	defer(function () {
+		stop();
+		collection.add([{"a": 4}, {"a": 5}]);
+
+		UndoManager.undo(true);
+
+		equal(collection.length, 1, "Undoing adding several models to a collection succeeded");
+
+		UndoManager.redo(true);
+
+		equal(collection.length, 3, "Redoing adding several models to a collection succeeded");
+		start();
+	})
+
+	flushDeferQueue();
 })
