@@ -217,7 +217,7 @@ That's what the *UndoTypes* are for. An *UndoType* is an object of functions for
 An *UndoType* needs to have the following functions:
 
 *   **on**	`([…])`
-    This function is called when the event this UndoType is made for was triggered on an observed object. It gets all the arguments that were triggered with the event. The `on`-function must return an object with the properties `object`, `before`, `after` and optionally `options`.
+    This function is called when the event this UndoType is made for was triggered on an observed object. It gets all the arguments that were triggered with the event. The `"on"`-function must return an object with the properties `object`, `before`, `after` and optionally `options`.
 
 		return {
 		    "object": … // The object the event was triggered on
@@ -227,24 +227,26 @@ An *UndoType* needs to have the following functions:
 		}
 
 *   **undo**	`(obj, before, after, options)`
-    The `undo` function is called when the action this UndoType is made for should be undone. The data returned by the `on` function is passed to `undo` as arguments:
+    The `undo` function is called when the action this UndoType is made for should be undone. The data returned by the `"on"` function is passed to `"undo"` as arguments:
 	*  `obj` is the model, collection or other kind of object that should be acted on
 	*  `before` is the the data before the action occured and defines the state that should be created within this function
 	*  `after` is the data after the action had occured and represents obj's current state
 	*  `options` are the options the `on` function returned
 *   **redo**	`(obj, before, after, options)`
-    The `redo` function is called when the action this UndoType is made for should be redone. As with `undo` the data returned by the `on` function is passed to `redo` as arguments
+    The `redo` function is called when the action this UndoType is made for should be redone. As with `"undo"` the data returned by the `"on"` function is passed to `"redo"` as arguments
 	*  `obj` is the model, collection or other kind of object that should be acted on
 	*  `before` is the the data before the action occured and represents the current state as the action was previously undone
 	*  `after` is the data after the action had occured and is the state wich should be recreated
-	*  `options` are the options the `on` function returned
+	*  `options` are the options the `"on"` function returned
 
 It can have an optional property:
 
 *   **condition**	`([…])`
-    `condition` can be a function or a boolean value that defines whether an UndoAction should be created or not. If it's false or if it returns false `on` won't be called and no UndoAction is created. If it's not set, condition is always `true`.
+    `"condition"` can be a function or a boolean value that defines whether an UndoAction should be created or not. If it's false or if it returns false `"on"` won't be called and no UndoAction is created. If it's not set, condition is always `true`.
 
 ##### UndoType example
+
+This is an example of an UndoType for the `"reset"` event.
 
 	{
 	    "reset": {
@@ -276,8 +278,9 @@ It can have an optional property:
 
 #### UndoTypes API
 
-If you want to generate undo-actions when custom or other Backbone-events are triggered, you can do so by extending
-Backbone.Undo. Use the static method `Backbone.Undo.addUndoType()`:
+To create your own UndoTypes for custom events or for extending the support of Backbone-events or if you just want to modify the built-in behavior, you can either do that on a global level to affect all current and future instances of Backbone.UndoManager or do that per instance to change only a specific undo manager.
+
+Either way you have three methods to extend or change the UndoTypes. Below the functions for global changes are presented:
 
 #### addUndoType
 
@@ -285,46 +288,89 @@ Backbone.Undo. Use the static method `Backbone.Undo.addUndoType()`:
 	// or
 	Backbone.Undo.addUndoType(types);
 
-An undo-type generates the data of an undo-action for a specific event and has an undo and redo method which know 
-how to undo and redo the action. With the `addUndoType()` method you can add or overwrite one or more of these undo-types.
-To understand how this works you have to know the structure of an undo-type:
+With the `addUndoType()` method you can add or overwrite one or more UndoTypes. You can call it with the two arguments `type` and `callbacks` or with an object in which all keys are `type`s and their values `callbacks` to perform a bulk action.
 
-*   `type` is the name of the event the undo-type is made for. For example `"add"`, `"change"` or `"reset"`.
-*   `on` is the function that generates the data necessary to undo or redo the action. It returns an object with the keys 
-    `"object"`, `"before"` and `"after"`
-*   `undo` is the function which executes the actual undoing. It gets `object`, `before` and `after` the values `on` had
-    returned as arguments as well as a copy of the whole object `on` returned in case it needs more data.
-*   `redo` is the function which executes the actual redoing. As `undo` it gets `object`, `before`, `after` and a copy of
-    the object `on` returned as arguments.
+* `type` The name of the event this UndoType is made for. In terms of Backbone events: `"add"`, `"remove"`, `"reset"`, `"change"`, etc.
+* `callbacks` An object with the funcitions `"on"`, `"undo"`, `"redo"` and optionally `"condition"`
     
-An example. If we want to add the undo-type `"reset"` (which is already built-in) we can do the following:
+*Example*: If we want to overwrite the UndoType `"reset"` with the functions defined in the example above we can do the following:
 
     Backbone.Undo.addUndoType("reset", {
         "on": function (collection, options) {
-            // The "on" method gets the arguments the type (here: "reset") 
-            // would get if it was bound to the object
-            return {
-                object: collection,
-                before: options.previousModels,
-                after: _.clone(collection.models) // We use a copy of the current state instead of storing a reference
-            }
+            …
         },
         "undo": function (collection, before, after) {
-            // Reset the collection with the previous models 
-            collection.reset(before);
+            …
         },
         "redo": function (collection, before, after) {
-            collection.reset(after);
+            …
          }
     });
     
-You can also define several undo-types by passing an object to `addUndoType`
+You can also define several UndoTypes at once by passing an object to `addUndoType`
 
 	Backbone.Undo.addUndoType({
-		"reset": {...},
-		"add": {...},
-		"customevent": {...}
+		"reset": {
+		   "on": …
+		   "undo": …
+		   "redo": …
+		},
+		"add": {
+		   "on": …
+		   "undo": …
+		   "redo": …
+		},
+		"customevent": {
+		   "on": …
+		   "undo": …
+		   "redo": …
+		}
 	});
+
+#### changeUndoType
+
+	Backbone.Undo.changeUndoType(type, callbacks);
+	// or
+	Backbone.Undo.changeUndoType(types);
+
+If you want to change just one or more functions of an already added or built-in UndoType `changeUndoType` is the way to go. It works just like `addUndoType` with the difference that there must already be an UndoType for the specified `type` and you don't have to pass all `callbacks` functions.
+
+	Backbone.Undo.changeUndoType("reset", {
+	    "condition": …
+	})
+
+Pass an object to perform a bulk action:
+
+	Backbone.Undo.changeUndoType({
+	    "reset": {
+	        "condition": …
+	    },
+	    "add": {
+	        "on": …
+	        "undo": …
+	    },
+	    "customevent": {
+	        "redo": …
+	    }
+	})
+
+#### removeUndoType
+
+	Backbone.Undo.removeUndoType(type);
+	// or
+	Backbone.Undo.removeUndoType(types);
+
+Call `removeUndoType` to remove an existing UndoType. Pass the type of the UndoType you want to remove as the argument or pass an array of types if you want to remove several at once.
+
+	Backbone.Undo.removeUndoType("reset");
+	
+Pass an array to perform a bulk action:
+
+	Backbone.Undo.removeUndoType(["reset", "add", "customevent"]);
+	
+If you just want to suspend an UndoType for a limited amount of time, making use of the `"condition"` property might be more adequate:
+
+	Backbone.Undo.changeUndoType("reset", {"condition": false});
 
 ## Problems that may occur
 
