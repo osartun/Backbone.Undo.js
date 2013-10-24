@@ -703,13 +703,8 @@
 			while (manager = args.pop()) {
 				if (manager instanceof UndoManager &&
 					manager.stack instanceof UndoStack) {
-					// unregister already registered objects
-					var registeredObjects = this.objectRegistry.get();
-					this.unregisterAll();
 					// set the stack reference to our stack
 					manager.stack = this.stack;
-					// register the just unregistered objects, now on the new stack
-					apply(this.register, this, registeredObjects);
 				}
 			}
 		},
