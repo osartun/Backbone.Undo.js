@@ -7,7 +7,7 @@
  * Documentation and full license available at
  * https://github.com/Bloli/Backbone.Undo.js
  */
-(function (win, doc, $, _, Backbone, undefined) {
+(function (win, doc, _, Backbone, undefined) {
 
 	var core_slice = Array.prototype.slice;
 
@@ -780,4 +780,4 @@
 
 	Backbone.UndoManager = UndoManager;
 
-})(window, window.document, window.jQuery, window._, window.Backbone)
+})(window, window.document, window._, window.Backbone)
