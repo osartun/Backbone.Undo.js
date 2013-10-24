@@ -218,6 +218,14 @@ An *UndoType* needs to have the following functions:
 
 *   **on**	`([…])`
     This function is called when the event this UndoType is made for was triggered on an observed object. It gets all the arguments that were triggered with the event. The `on`-function must return an object with the properties `object`, `before`, `after` and optionally `options`.
+
+		return {
+		    "object": … // The object the event was triggered on
+		    "before": … // The object's state before the concerning action occured
+		    "after": … // The object's current state, after the concerning action occured
+		    "options": … // Optionally: Some 'options'-object
+		}
+
 *   **undo**	`(obj, before, after, options)`
     The `undo` function is called when the action this UndoType is made for should be undone. The data returned by the `on` function is passed to `undo` as arguments:
 	*  `obj` is the model, collection or other kind of object that should be acted on
