@@ -97,7 +97,7 @@ objects:
 The register-method doesn't check whether the object is an instance of Backbone.Model or Backbone.Collection. That makes
 it possible to bind other objects as well. However, make sure they have an `on()` and an `off()` method and trigger an `"all"` event in the fashion of Backbone's `"all"` event.
 
-#### unregister		`undoManager.unregister(obj, [obj, ...])`
+#### unregister		`undoManager.unregister(obj, [obj, …])`
 
 Previously registered objects can be unregistered using the `unregister()` method. Changes to those objects can't be
 undone after they have been unregistered.
@@ -205,7 +205,68 @@ Backbone.Undo.js uses Backbone's events to generate UndoActions. It has built-in
 *   `reset` When a collection is reset and all models are replaced by new models (or no models) at once
 *   `change` When an attribute of a model was changed
 
-### Supporting other events
+### Supporting other events and modifying built-in behavior
+
+Backbone.Undo.js has an API to extend and modify the generation of UndoActions. In order to use the API it's important to understand the concept of creating UndoActions:
+
+#### UndoTypes
+
+Backbone.Undo.js retrieves the data of the undoable states from the events Backbone triggers and their arguments. However, different events have different arguments and thus need different approaches in retrieving the necessary data. Additionally, different types of actions require different behavior to undo and redo them.
+That's what the *UndoTypes* are for. An *UndoType* is an object of functions for a specific type of event. The functions retrieve the data necessary to create an UndoAction and are able to undo an action of this type and redo it.
+
+An *UndoType* needs to have the following functions:
+
+*   **on**	`([…])`
+    This function is called when the event this UndoType is made for was triggered on an observed object. It gets all the arguments that were triggered with the event. The `on`-function must return an object with the properties `object`, `before`, `after` and optionally `options`.
+*   **undo**	`(obj, before, after, options)`
+    The `undo` function is called when the action this UndoType is made for should be undone. The data returned by the `on` function is passed to `undo` as arguments:
+	*  `obj` is the model, collection or other kind of object that should be acted on
+	*  `before` is the the data before the action occured and defines the state that should be created within this function
+	*  `after` is the data after the action had occured and represents obj's current state
+	*  `options` are the options the `on` function returned
+*   **redo**	`(obj, before, after, options)`
+    The `redo` function is called when the action this UndoType is made for should be redone. As with `undo` the data returned by the `on` function is passed to `redo` as arguments
+	*  `obj` is the model, collection or other kind of object that should be acted on
+	*  `before` is the the data before the action occured and represents the current state as the action was previously undone
+	*  `after` is the data after the action had occured and is the state wich should be recreated
+	*  `options` are the options the `on` function returned
+
+It can have an optional property:
+
+*   **condition**	`([…])`
+    `condition` can be a function or a boolean value that defines whether an UndoAction should be created or not. If it's false or if it returns false `on` won't be called and no UndoAction is created. If it's not set, condition is always `true`.
+
+##### UndoType example
+
+	{
+	    "reset": {
+	    	"condition": true, // This isn't necessary as condition is true by default
+	    	"on": function (collection, options) {
+	    		// The 'on'-method gets the same arguments a listener for the
+	    		// Backbone 'reset'-event would get: collection.on("reset", listener)
+	    		
+	    		// The 'on'-method has to return an object with the properties
+	    		// 'object', 'before', 'after' and optionally 'options'
+	    		return {
+	    		    object: collection,
+	    		    before: options.previousModels,
+	    		    after: _.clone(collection.models)
+	    		}
+	    	},
+	    	"undo": function (collection, before, after) {
+	    		// To restore the previous state we just reset the collection
+	    		// with the previous models
+	    		collection.reset(before);
+	    	}
+	    	"redo": function (collection, before, after) {
+	    		// To restore the subsequent state we reset the collection to
+	    		// the 'after'-array of models
+	    		collection.reset(after);
+	    	}
+	    }
+	}
+
+#### UndoTypes API
 
 If you want to generate undo-actions when custom or other Backbone-events are triggered, you can do so by extending
 Backbone.Undo. Use the static method `Backbone.Undo.addUndoType()`:
