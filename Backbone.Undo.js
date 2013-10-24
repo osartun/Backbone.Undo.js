@@ -706,13 +706,12 @@
 			if (undoManager instanceof UndoManager &&
 				undoManager.stack instanceof UndoStack) {
 				// unregister already registered objects
-				var registeredObjects = this.objectRegistry.get(),
-				hasObjects = !!registeredObjects.length;
-				if (hasObjects) apply(this.unregister, this, registeredObjects);
+				var registeredObjects = this.objectRegistry.get();
+				this.unregisterAll();
 				// replace the stack reference
 				this.stack = undoManager.stack;
 				// register the just unregistered objects, now on the new stack
-				if (hasObjects) apply(this.register, this, registeredObjects);
+				apply(this.register, this, registeredObjects);
 			}
 		},
 		/**
