@@ -1,75 +1,75 @@
 Backbone.Undo.js
 ================
 
-An extremely simple Undo-Manager for Backbone.js
+An extremely simple undo manager for Backbone.js
 
 #### Advantages of Backbone.Undo.js
 
-*   **Easy to include and exclude**
+* 	**The Drop-In Manager**
 
-    In comparison to other Backbone-based undo-managers like *memento*, you don't have to modify your models 
-    or collections to use Backbone.Undo.js. You can have your whole application already set up with all the 
-    models and collections you need and then add the undo-manager. That makes it easy to not only include 
-    Backbone.Undo.js, but also to remove it again if you don't longer want to use it at some point.
-    
-*   **Uses Backbone-Events**
+	In comparison to undo managers that implement the memento pattern you don't have to modify your models and collections to use Backbone.Undo.js. Just drop in Backbone.Undo.js and register the objects whose actions you want to undo. That way it's not only easy to include Backbone.Undo.js, but also to exclude it in case you don't want to use it any longer at some point.
 
-    To detect an action, Backbone.Undo.js listens to the events Backbone triggeres automatically. You don't have 
-    to do anything. You don't have to `store()` or `restore()` certain states. Nothing.
+*	**Ready To Go: Based on Backbone-Events**
 
-*   **Only what's necessary**
+	You don't have to manually call methods to `store()` or `restore()` certain states. To detect an undoable action, Backbone.Undo.js listens to the events Backbone triggeres automatically. You don't have to do anything.
 
-    Backbone.Undo.js only stores the changes, instead of taking snapshots of the models' / collections' current state.
+* 	**Magic Condensation**
 
-*   **Optimized for Usability**
-   
-    In a sophisticated webapp one click of the user might trigger several Backbone-Events which are stored as 
-    several Undo-Actions within the Undo-Stack. If the user then calls `undo()` it shouldn't just undo the latest 
-    action, it should undo all the actions which were triggered by the user's click. Backbone.Undo.js does just that
-    because it has a built-in mechanism that figures out which actions belong together and then undoes/redoes all 
-    of them.
- 
+	In a more complex web application the click of a button might trigger several changes which dispatch several events which in Backbone.Undo.js are turned into several undoable actions. If the user wants to undo what he caused with his click he wants to undo all of those actions. Backbone.Undo.js has an internal feature called __Magic Condensation__ that detects actions that were created in one flow and undoes or redoes all of them.
+
+#### Who should use Backbone.Undo.js
+
+Backbone.Undo.js is a simple undo manager that should be used by rather simple web applications. It has mechanisms that makes it extensible and suitable for more complex applications. However, it might not be adequate for very large-scale applications with tens of thousands of lines of code.
+
 ## Getting started
 
-Like with all the other JavaScript-Libraries you only need to include Backbone.Undo.js into your webpage or webapp 
-to make it available.
-As Backbone.Undo.js depends on Backbone you need Backbone, which again depends on underscore.js (or lowdash.js) and 
-jQuery (or zepto). Make sure to include all these files before Backbone.Undo.js as it relies on these libraries:
-  
-    <script src="jquery.js"></script>
+Backbone.Undo.js depends on Backbone.js which depends on underscore.js (or lowdash.js). Make sure to include those two files before Backbone.Undo.js:
+
     <script src="underscore.js"></script>
     <script src="backbone.js"></script>
-    <!-- Backbone.Undo.js is included *after* those other libs -->
+    <!-- Backbone.Undo.js is included *after* Backbone and Underscore -->
     <script src="Backbone.Undo.js"></script>
 
 
-### Backbone Version
+#### Backbone Version
 
 Backbone.Undo.js was developed for Backbone 1.0.0 or higher.
 
-### Underscore Version
+#### Underscore Version
 
 Backbone.Undo.js was developed for Underscore 1.4.4 or higher.
 
 ## Setting up your UndoManager
 
-In order to set up you UndoManager you have to do the following steps:
+In order to set up your UndoManager you have to do the following steps:
 
-    // 1. Instantiate your UndoManager
+1. Instantiate your UndoManager
+
     var myUndoManager = new Backbone.UndoManager();
       
-    // 2. Register the models and collections you want to observe
+2. Register the models and collections you want to observe
+
     var model = new Backbone.Model,
     collection = new Backbone.Collection;
     myUndoManager.register(model, collection); // You can pass several objects as arguments
     
-    // You can set up your objects here. Changes won't be tracked yet.
+    // You can prepare your objects here. Changes won't be tracked yet.
     model.set("foo", "bar");
     collection.add([{"something": "blue"}]);
     // These changes can't be undone.
     
-    // 3. Start tracking the changes
-    myUndoManager.startTracking(); // Everything that happens from now on, can be undone
+3. Start tracking the changes
+
+    myUndoManager.startTracking(); // Every change that happens to the model and the collection can now be undone
+    
+If you already have the objects you want to observe when you instantiate the undo manager or if you don't need to prepare them you can use the shorthand way of passing them on instantiation:
+
+    // Shorthand
+    var myUndoManager = new Backbone.UndoManager({
+    	track: true, // changes will be tracked right away
+    	register: [model, collection] // pass an object or an array of objects
+    })
+
 
 ## Backbone.Undo.js methods
 
@@ -77,20 +77,19 @@ Methods you can call on an instance of Backbone.Undo:
 
 #### Constructor 	`new Backbone.Undo([object]);`
 
-The constructor can be called with an optional argument. The argument is an object of attributes. So far only the 
-attribute `maximumStackLength` is supported.
+The constructor can be called with an optional argument. The argument is an object of attributes. Each attribute is optional and has a default value.
 
-    var undoManager = new Backbone.Undo; // possible, because arguments are optional
+    var undoManager = new Backbone.Undo; // possible, because the argument is optional
+    
     var undoManager = new Backbone.Undo({
-        maximumStackLength: 30
+        maximumStackLength: 30, // default: Infinity; Maximum number of undoable actions
+        track: true, // default: false; If true, changes will be tracked right away
+        register: myObj // default: undefined; Pass the object or an array of objects that you want to observe
     });
-
-The attribute `maximumStackLength` defines how many undo-actions should be in the undo-stack at the utmost, which means
-how many actions are undoable. The default value is `Infinity` so there's  no limit at all.
 
 #### register		`undoManager.register(obj, [obj, ...]);`
 
-Your undo-instance must know the object on which actions should be undone/redone. Therefore you have to register these
+Your undo manager must know the objects whose actions should be undoable/redoable. Therefore you have to register these
 objects:
 
     var model = new Backbone.Model;
@@ -98,13 +97,12 @@ objects:
     undoManager.register(model, collection);
 
 The register-method doesn't check whether the object is an instance of Backbone.Model or Backbone.Collection. That makes
-it possible to bind other objects which don't derive from Backbone constructors and yet have `on()` and `off()` methods
-and trigger an `"all"` event.
+it possible to bind other objects which as well. However, make sure they have an `on()` and an `off()` method and trigger an `"all"` event in the fashion of Backbone's `"all"` event.
 
 #### unregister		`undoManager.unregister(obj, [obj, ...]);`
 
 Previously registered objects can be unregistered using the `unregister()` method. Changes to those objects can't be
-undone after they have been unregsitered.
+undone after they have been unregistered.
 
     var myModel = new Backbone.Model;
     undoManager.register(myModel);
