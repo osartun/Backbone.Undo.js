@@ -372,6 +372,26 @@ If you just want to suspend an UndoType for a limited amount of time, making use
 
 	Backbone.Undo.changeUndoType("reset", {"condition": false});
 
+#### Using the UndoTypes API per instance
+
+As stated above you can also add, change and remove UndoTypes for a specific instance of Backbone.Undo without affecting other instances. The methods and arguments are exactly the same.
+
+	var undoManager = new Backbone.UndoManager;
+	
+	undoManager.addUndoType("reset", {
+	    "on": …
+	    "undo": …
+	    "redo": …
+	})
+	
+	undoManager.changeUndoType("reset", {
+	    "undo": …
+	})
+	
+	undoManager.removeUndoType("reset");
+	
+Please note that removing an UndoType on a per instance level just causes a fallback to the global UndoTypes and won't take away the support for this type. You have to overwrite the type with an UndoType of empty functions to accomplish that.
+
 ## License (MIT License)
 
 Copyright (c) 2013 Oliver Sartun
