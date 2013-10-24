@@ -15,7 +15,7 @@ An extremely simple undo manager for Backbone.js
 
 * 	**Magic Condensation**
 
-	In a more complex web application the click of a button might trigger several changes which dispatch several events which in Backbone.Undo.js are turned into several undoable actions. If the user wants to undo what he caused with his click he wants to undo all of those actions. Backbone.Undo.js has an internal feature called __Magic Condensation__ that detects actions that were created in one flow and undoes or redoes all of them.
+	In a more complex web application the click of a button might trigger several changes which dispatch several events which in Backbone.Undo.js are turned into several undoable actions. If the user wants to undo what he caused with his click he wants to undo all of those actions. Backbone.Undo.js has an internal feature called *Magic Condensation* that detects actions that were created in one flow and undoes or redoes all of them.
 
 #### Who should use Backbone.Undo.js
 
@@ -43,26 +43,25 @@ Backbone.Undo.js was developed for Underscore 1.4.4 or higher.
 
 In order to set up your UndoManager you have to do the following steps:
 
-1. Instantiate your UndoManager
+1. __Instantiate__ your UndoManager
 
-    var myUndoManager = new Backbone.UndoManager();
-      
-2. Register the models and collections you want to observe
+        var myUndoManager = new Backbone.UndoManager();
 
-    var model = new Backbone.Model,
-    collection = new Backbone.Collection;
-    myUndoManager.register(model, collection); // You can pass several objects as arguments
-    
-    // You can prepare your objects here. Changes won't be tracked yet.
-    model.set("foo", "bar");
-    collection.add([{"something": "blue"}]);
-    // These changes can't be undone.
-    
-3. Start tracking the changes
+2. __Register__ the models and collections you want to observe
 
-    myUndoManager.startTracking(); // Every change that happens to the model and the collection can now be undone
-    
-If you already have the objects you want to observe when you instantiate the undo manager or if you don't need to prepare them you can use the shorthand way of passing them on instantiation:
+        var model = new Backbone.Model,
+        collection = new Backbone.Collection;
+        myUndoManager.register(model, collection); // You can pass several objects as arguments
+        // You can prepare your objects here. Changes won't be tracked yet.
+        model.set("foo", "bar");
+        collection.add([{"something": "blue"}]);
+        // These changes can't be undone.
+
+3. __Start tracking__ the changes
+
+        myUndoManager.startTracking(); // Every change that happens to the model and the collection can now be undone
+
+__Shorthand__: If you already have the objects you want to observe at hand when you instantiate the undo manager or if you don't need to prepare them you can pass them on instantiation:
 
     // Shorthand
     var myUndoManager = new Backbone.UndoManager({
@@ -75,19 +74,18 @@ If you already have the objects you want to observe when you instantiate the und
 
 Methods you can call on an instance of Backbone.Undo:
 
-#### Constructor 	`new Backbone.Undo([object]);`
+#### Constructor 	`new Backbone.Undo([object])`
 
-The constructor can be called with an optional argument. The argument is an object of attributes. Each attribute is optional and has a default value.
+The constructor can be called with an object of attributes as an optional argument. Each attribute is optional and has a default value.
 
     var undoManager = new Backbone.Undo; // possible, because the argument is optional
-    
     var undoManager = new Backbone.Undo({
         maximumStackLength: 30, // default: Infinity; Maximum number of undoable actions
         track: true, // default: false; If true, changes will be tracked right away
         register: myObj // default: undefined; Pass the object or an array of objects that you want to observe
     });
 
-#### register		`undoManager.register(obj, [obj, ...]);`
+#### register		`undoManager.register(obj, [obj, ...])`
 
 Your undo manager must know the objects whose actions should be undoable/redoable. Therefore you have to register these
 objects:
@@ -97,9 +95,9 @@ objects:
     undoManager.register(model, collection);
 
 The register-method doesn't check whether the object is an instance of Backbone.Model or Backbone.Collection. That makes
-it possible to bind other objects which as well. However, make sure they have an `on()` and an `off()` method and trigger an `"all"` event in the fashion of Backbone's `"all"` event.
+it possible to bind other objects as well. However, make sure they have an `on()` and an `off()` method and trigger an `"all"` event in the fashion of Backbone's `"all"` event.
 
-#### unregister		`undoManager.unregister(obj, [obj, ...]);`
+#### unregister		`undoManager.unregister(obj, [obj, ...])`
 
 Previously registered objects can be unregistered using the `unregister()` method. Changes to those objects can't be
 undone after they have been unregistered.
@@ -111,19 +109,23 @@ undone after they have been unregistered.
     undoManager.unregister(myModel);
     myModel.set("foo", "baz"); // Can't be undone
 
-#### startTracking 	`undoManager.startTracking();`
+#### unregisterAll      `undoManager.unregisterAll()`
 
-Your undo-manager won't store any changes that happen to registered objects until you called `startTracking()`.
+Unregister all objects that have been registered at this undoManager so far.
+
+#### startTracking 	`undoManager.startTracking()`
+
+Changes must be tracked in order to create UndoActions. You can either set `{track: true}` on instantiation or call `startTracking()` later.
 
     var myModel = new Backbone.Model;
     undoManager.register(myModel);
-    myModel.set("foo", "bar"); // Can't be undone because tracking changes didn't start yet
+    myModel.set("foo", "bar"); // Can't be undone because tracking didn't start yet
     undoManager.startTracking();
     myModel.set("foo", "baz"); // Can be undone
 
 #### stopTracking	`undoManager.stopTracking();`
     
-If you want to stop tracking changes for whatever reason, you can do that by calling `stopTracking()`
+If you want to stop tracking changes for whatever reason, you can do that by calling `stopTracking()`.
 
     myModel.set("foo", 1);
     undoManager.startTracking();
@@ -131,22 +133,72 @@ If you want to stop tracking changes for whatever reason, you can do that by cal
     undoManager.stopTracking();
     myModel.set("foo", 3);
     undoManager.undo(); // "foo" is 1 instead of 2, because the last change wasn't tracked
-    // btw: You shouldn't call `undo` within your code. See 'Problems that may occur'
 
-#### undo		`undoManager.undo();`
+#### undo		`undoManager.undo([magic]);`
     
-The method to undo the last set of actions is `undo()`. It undoes all actions that happened within one call cycle. That's
-why you shouldn't and can't call `undo()` within your code to undo actions. See 'Problems that may occur' for more 
-information.
+The method to undo the last action is `undo()`.
 
-#### redo		`undoManager.redo();`
+        myModel.get("foo"); // => 1
+        
+        myModel.set("foo", 2);
+        undoManager.undo();
+        
+        myModel.get("foo"); // => 1
+
+Pass `true` to activate *Magic Condensation*. That way you undo the complete last set of actions that happened at once.
+
+#### redo		`undoManager.redo([magic])`
     
-The method to redo an undone set of actions is `redo()`. Like `undo()` it redoes all actions that happened within 
-one call cycle. See 'Problems that may occur' for more information.
+The method to redo the latest undone action is `redo()`.
+
+        myModel.set("foo", 2);
+        
+        undoManager.undo();
+        myModel.get("foo"); // => 1
+        
+        undoManager.redo();
+        myModel.get("foo"); // => 2
+
+Like with `undo()` you can pass `true` to activate *Magic Condensation* and to redo the complete last set of actions that were undone.
+
+#### isAvailable        `undoManager.isAvailable(type)`
+
+This method checks if there's an UndoAction in the stack that can be undone / redone. Pass `"undo"` or `"redo"` as the argument.
+
+        undoManager.isAvailable("undo") // => true; You can undo actions
+
+If you use undo- and redo-buttons in your gui this method is helpful for determining whether to display them in an enabled or disabled state.
+
+#### merge              `undoManager.merge(otherManager1, [otherManager2, …])`
+
+This is a feature for the advanced use of Backbone.Undo.js. Using the [UndoTypes-API][supporting-other-events] for specific instances of Backbone.UndoManager you can create undo managers with special behavior for special cases. But as having several undo managers side by side doesn't make any sense you need a way to combine them. That's what merge is for.
+
+The method `merge` sets the stack-reference of other undo managers to its stack.
+
+        var mainUndoManager = new Backbone.UndoManager,
+        specialUndoManager = new Backbone.UndoManager;
+        
+        mainUndoManager.merge(specialUndoManager);
+        
+        mainUndoManager.stack === specialUndoManager.stack // => true
+
+You can pass one or more undo managers or an array with one or more undo managers when calling this function.
+
+#### addUndoType        `undoManager.addUndoType(type, fns)`
+
+This adds an UndoType that only works for this specific undo manager and won't affect other instances of Backbone.UndoManager. See the UndoTypes-API for a more thorough documentation on this function.
+
+#### changeUndoType     `undoManager.changeUndoType(type, fns)`
+
+This changes an UndoType only on this specific undo manager and won't affect other instances of Backbone.UndoManager. See the UndoTypes-API for a more thorough documentation on this function.
+
+#### removeUndoType     `undoManager.removeUndoType(type)`
+
+This removes an UndoType only from from this specific undo manager. See the UndoTypes-API for a more thorough documentation on this function.
 
 ## Supported Events
 
-Backbone.Undo.js uses Backbone-Events to generate the undo-actions. It has built-in support for the following events
+Backbone.Undo.js uses Backbone's events to generate UndoActions. It has built-in support for the following events
 
 *   `add` When a model is added to a collection
 *   `remove` When a model is removed from a collection
