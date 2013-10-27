@@ -5,7 +5,7 @@
  * Released under the MIT License
  *
  * Documentation and full license available at
- * https://github.com/Bloli/Backbone.Undo.js
+ * https://github.com/osartun/Backbone.Undo.js
  */
 (function (win, doc, _, Backbone, undefined) {
 
