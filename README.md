@@ -23,7 +23,7 @@ Backbone.Undo.js is a simple undo manager that should be used by rather simple w
 
 ## Getting started
 
-Backbone.Undo.js depends on Backbone.js which depends on underscore.js (or lowdash.js). Make sure to include those two files before Backbone.Undo.js:
+Backbone.Undo.js depends on Backbone.js which depends on Underscore.js (or Lo-Dash.js). Make sure to include these two files before you include Backbone.Undo.js:
 
     <script src="underscore.js"></script>
     <script src="backbone.js"></script>
