@@ -7,7 +7,7 @@
  * Documentation and full license available at
  * https://github.com/osartun/Backbone.Undo.js
  */
-(function (win, doc, _, Backbone, undefined) {
+(function (_, Backbone, undefined) {
 
 	var core_slice = Array.prototype.slice;
 
@@ -775,4 +775,4 @@
 
 	Backbone.UndoManager = UndoManager;
 
-})(window, window.document, window._, window.Backbone)
+})(_, Backbone)
