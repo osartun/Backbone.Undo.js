@@ -423,7 +423,7 @@ As stated above you can also add, change and remove UndoTypes for a specific ins
 	
 Please note that removing an UndoType on a per instance level just causes a fallback to the global UndoTypes and won't take away the support for this type. You have to overwrite the type with an UndoType of empty functions to accomplish that.
 
-Using the UndoTypes-API is especially useful if you have several undo managers.
+Using the UndoTypes-API for a specific instance is especially useful if you have several undo managers.
 
 	var undoA = new Backbone.UndoManager,
 	undoB = new Backbone.UndoManager,
