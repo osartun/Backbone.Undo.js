@@ -62,9 +62,9 @@
 	 * Returns a number that is unique per call stack. The number gets 
 	 * changed after the call stack has been completely processed.
 	 * 
-	 * @return {number} MagicCondensationIndex
+	 * @return {number} MagicFusionIndex
 	 */
-	var getMagicCondensationIndex = (function () {
+	var getMagicFusionIndex = (function () {
 		// If you add several models to a collection or set several
 		// attributes on a model all in sequence and yet all for
 		// example in one function, then several Undo-Actions are
@@ -80,9 +80,9 @@
 		// Instead we take advantage of the single-threadedness of
 		// JavaScript:
 
-		var callstackWasIndexed = false, magicCondensationIndex = -1;
+		var callstackWasIndexed = false, magicFusionIndex = -1;
 		function indexCycle() {
-			magicCondensationIndex++;
+			magicFusionIndex++;
 			callstackWasIndexed = true;
 			_.defer(function () {
 				// Here comes the magic. With a Timeout of 0 
@@ -95,7 +95,7 @@
 			if (!callstackWasIndexed) {
 				indexCycle();
 			}
-			return magicCondensationIndex;
+			return magicFusionIndex;
 		}
 	})();
 
@@ -239,7 +239,7 @@
 	 * @param  {String} 		which 	Either "undo" or "redo"
 	 * @param  {UndoManager} 	manager	The UndoManager-instance on which an "undo"/"redo"-Event is triggered afterwards
 	 * @param  {UndoStack} 		stack 	The UndoStack on which we perform
-	 * @param  {Boolean} 		magic 	If true, undoes / redoes all actions with the same magicCondensationIndex
+	 * @param  {Boolean} 		magic 	If true, undoes / redoes all actions with the same magicFusionIndex
 	 * @return {undefined}
 	 */
 	function managerUndoRedo (which, manager, stack, magic) {
@@ -259,7 +259,7 @@
 			stack.pointer++;
 			action = stack.at(stack.pointer);
 		}
-		actions = magic ? stack.where({"magicCondensationIndex": action.get("magicCondensationIndex")}) : [action];
+		actions = magic ? stack.where({"magicFusionIndex": action.get("magicFusionIndex")}) : [action];
 		stack.pointer += (isUndo ? -1 : 1) * (actions.length - 1);
 		while (action = isUndo ? actions.pop() : actions.shift()) {
 			// Here we're calling the Action's undo / redo method
@@ -303,7 +303,7 @@
 			var res = apply(undoTypes[type]["on"], undoTypes[type], args), diff;
 			if (hasKeys(res, "object", "before", "after")) {
 				res.type = type;
-				res.magicCondensationIndex = getMagicCondensationIndex();
+				res.magicFusionIndex = getMagicFusionIndex();
 				res.undoTypes = undoTypes;
 				if (stack.pointer < stack.length - 1) {
 					// New Actions must always be added to the end of the stack.
@@ -528,7 +528,7 @@
 			object: null, // The object on which the action occurred
 			before: null, // The previous values which were changed with this action
 			after: null, // The values after this action
-			magicCondensationIndex: null // The magicCondensationIndex helps to combine 
+			magicFusionIndex: null // The magicFusionIndex helps to combine 
 			// all actions that occurred "at the same time" to undo/redo them altogether
 		},
 		/**
