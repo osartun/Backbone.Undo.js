@@ -423,6 +423,25 @@ As stated above you can also add, change and remove UndoTypes for a specific ins
 	
 Please note that removing an UndoType on a per instance level just causes a fallback to the global UndoTypes and won't take away the support for this type. You have to overwrite the type with an UndoType of empty functions to accomplish that.
 
+Using the UndoTypes-API is especially useful if you have several undo managers.
+
+	var undoA = new Backbone.UndoManager,
+	undoB = new Backbone.UndoManager,
+	undoC = new Backbone.UndoManager;
+	
+	undoA.addUndoType(…); // behavior A
+	undoB.addUndoType(…); // behavior B
+	undoC.addUndoType(…); // behavior C
+	
+However, several undo managers cause the problem that you don't know on which undo manager you should call `undo()` and `redo()`.
+That's what the `merge()` function is for: It merges several undo managers by making them write on a single stack.
+
+	var mainUndo = new Backbone.UndoManager;
+	
+	mainUndo.merge(undoA, undoB, undoC)
+	
+Now, you just need to call `undo()` and `redo()` on the main undo manager.
+
 ## License (MIT License)
 
 Copyright (c) 2013 Oliver Sartun
