@@ -74,12 +74,12 @@ __Shorthand__: If you already have the objects you want to observe at hand when 
 
 Methods you can call on an instance of Backbone.Undo:
 
-#### Constructor 	`new Backbone.Undo([object])`
+#### Constructor 	`new Backbone.UndoManager([object])`
 
 The constructor can be called with an object of attributes as an optional argument. Each attribute is optional and has a default value.
 
-    var undoManager = new Backbone.Undo; // possible, because the argument is optional
-    var undoManager = new Backbone.Undo({
+    var undoManager = new Backbone.UndoManager; // possible, because the argument is optional
+    var undoManager = new Backbone.UndoManager({
         maximumStackLength: 30, // default: Infinity; Maximum number of undoable actions
         track: true, // default: false; If true, changes will be tracked right away
         register: myObj // default: undefined; Pass the object or an array of objects that you want to observe
@@ -171,13 +171,17 @@ If you use undo- and redo-buttons in your gui this method is helpful for determi
 
 #### merge              `undoManager.merge(otherManager1, [otherManager2, …])`
 
-This is a feature for the advanced use of Backbone.Undo.js. Using the [UndoTypes-API][supporting-other-events] for specific instances of Backbone.UndoManager you can create undo managers with special behavior for special cases. But as having several undo managers side by side doesn't make any sense you need a way to combine them. That's what merge is for.
+This is a feature for the advanced use of Backbone.Undo.js. Using the UndoTypes-API (see below) for specific instances of `Backbone.UndoManager` you can create undo managers with special behavior for special cases. But as having several undo managers side by side doesn't make any sense you need a way to combine them. That's what `merge` is for.
 
 The method `merge` sets the stack-reference of other undo managers to its stack.
 
         var mainUndoManager = new Backbone.UndoManager,
         specialUndoManager = new Backbone.UndoManager;
         
+        // Implementing special behavior
+        specialUndoManager.addUndoType(…)
+        
+        // Making both write on one stack
         mainUndoManager.merge(specialUndoManager);
         
         mainUndoManager.stack === specialUndoManager.stack // => true
