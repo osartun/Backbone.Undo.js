@@ -72,7 +72,7 @@ __Shorthand__: If you already have the objects you want to observe at hand when 
 
 ## Backbone.Undo.js methods
 
-Methods you can call on an instance of Backbone.Undo:
+Methods you can call on an instance of `Backbone.UndoManager`:
 
 #### Constructor 	`new Backbone.UndoManager([object])`
 
@@ -199,6 +199,33 @@ This changes an UndoType only on this specific undo manager and won't affect oth
 #### removeUndoType     `undoManager.removeUndoType(type)`
 
 This removes an UndoType only from from this specific undo manager. See the UndoTypes-API for a more thorough documentation on this function.
+
+***
+
+Methods you can call on the object `Backbone.UndoManager`:
+
+#### defaults 		`Backbone.UndoManager.defaults(obj)`
+
+Extend or overwrite the default values of an undo manager.
+
+	Backbone.UndoManager.defaults({
+		track: true
+	});
+	
+	var undoManager = new Backbone.UndoManager; // tracking has now already started
+	
+#### addUndoType        `Backbone.UndoManager.addUndoType(type, fns)`
+
+This adds an UndoType that works for all undo managers whether they've already been instantiated or not. See the UndoTypes-API for a more thorough documentation on this function.
+
+#### changeUndoType     `Backbone.UndoManager.changeUndoType(type, fns)`
+
+This changes an UndoType for all undo managers whether they've already been instantiated or not. See the UndoTypes-API for a more thorough documentation on this function.
+
+#### removeUndoType     `Backbone.UndoManager.removeUndoType(type)`
+
+This removes an UndoType from all undo managers whether they've already been instantiated or not. See the UndoTypes-API for a more thorough documentation on this function.
+
 
 ## Supported Events
 
