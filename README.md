@@ -13,9 +13,9 @@ An extremely simple undo manager for Backbone.js
 
 	You don't have to manually call methods to `store()` or `restore()` certain states. To detect an undoable action, Backbone.Undo.js listens to the events Backbone triggeres automatically. You don't have to do anything.
 
-* 	**Magic Condensation**
+* 	**Magic Fusion**
 
-	In a more complex web application the click of a button might trigger several changes which dispatch several events which in Backbone.Undo.js are turned into several undoable actions. If the user wants to undo what he caused with his click he wants to undo all of those actions. Backbone.Undo.js has an internal feature called *Magic Condensation* that detects actions that were created in one flow and undoes or redoes all of them.
+	In a more complex web application the click of a button might trigger several changes which dispatch several events which in Backbone.Undo.js are turned into several undoable actions. If the user wants to undo what he caused with his click he wants to undo all of those actions. Backbone.Undo.js has an internal feature called *Magic Fusion* that detects actions that were created in one flow and undoes or redoes all of them.
 
 #### Who should use Backbone.Undo.js
 
@@ -145,7 +145,7 @@ The method to undo the last action is `undo()`.
         
         myModel.get("foo"); // => 1
 
-Pass `true` to activate *Magic Condensation*. That way you undo the complete last set of actions that happened at once.
+Pass `true` to activate *Magic Fusion*. That way you undo the complete last set of actions that happened at once.
 
 #### redo		`undoManager.redo([magic])`
     
@@ -159,7 +159,7 @@ The method to redo the latest undone action is `redo()`.
         undoManager.redo();
         myModel.get("foo"); // => 2
 
-Like with `undo()` you can pass `true` to activate *Magic Condensation* and to redo the complete last set of actions that were undone.
+Like with `undo()` you can pass `true` to activate *Magic Fusion* and to redo the complete last set of actions that were undone.
 
 #### isAvailable        `undoManager.isAvailable(type)`
 
