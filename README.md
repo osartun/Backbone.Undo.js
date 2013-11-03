@@ -3,6 +3,10 @@ Backbone.Undo.js
 
 An extremely simple undo manager for Backbone.js
 
+**Go to [backbone.undojs.com](http://backbone.undojs.com) for demos and a video tutorial!**
+
+***
+
 #### Advantages of Backbone.Undo.js
 
 * 	**The Drop-In Manager**
