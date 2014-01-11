@@ -377,8 +377,8 @@
 					_.each(_.keys(after), model.unset, model);
 				} else {
 					model.set(before);
-					if (options && options.unset && options.unset.before && options.unset.before.length) {
-						_.each(options.unset.before, model.unset, model);
+					if (options && options.unsetData && options.unsetData.before && options.unsetData.before.length) {
+						_.each(options.unsetData.before, model.unset, model);
 					}
 				}
 			},
@@ -387,8 +387,8 @@
 					_.each(_.keys(before), model.unset, model);
 				} else {
 					model.set(after);
-					if (options && options.unset && options.unset.after && options.unset.after.length) {
-						_.each(options.unset.after, model.unset, model);
+					if (options && options.unsetData && options.unsetData.after && options.unsetData.after.length) {
+						_.each(options.unsetData.after, model.unset, model);
 					}
 				}
 			},
@@ -398,7 +398,7 @@
 				keysAfter = _.keys(afterAttributes),
 				previousAttributes = _.pick(model.previousAttributes(), keysAfter),
 				keysPrevious = _.keys(previousAttributes),
-				unset = (options || (options = {})).unset = {
+				unsetData = (options || (options = {})).unsetData = {
 					after: [],
 					before: []
 				};
@@ -409,14 +409,14 @@
 						// New attributes have been added
 						_.each(keysAfter, function (val) {
 							if (!(val in previousAttributes)) {
-								unset.before.push(val);
+								unsetData.before.push(val);
 							}
 						}, this);
 					} else {
 						// Old attributes have been unset
 						_.each(keysPrevious, function (val) {
 							if (!(val in afterAttributes)) {
-								unset.after.push(val);
+								unsetData.after.push(val);
 							}
 						})
 					}
