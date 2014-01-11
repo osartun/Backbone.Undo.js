@@ -23,7 +23,7 @@ An extremely simple undo manager for Backbone.js
 
 #### Who should use Backbone.Undo.js
 
-Backbone.Undo.js is a simple undo manager that should be used by rather simple web applications. It has mechanisms that makes it extensible and suitable for more complex applications. However, it might not be adequate for very large-scale applications with tens of thousands of lines of code.
+Backbone.Undo.js is a simple undo manager that should be used for rather simple web applications. It has mechanisms that make it extensible and suitable for more complex applications. However, it might not be adequate for very large-scale applications with vast amounts of lines of code.
 
 ## Getting started
 
