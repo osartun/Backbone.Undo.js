@@ -1,0 +1,23 @@
+{
+  "name": "Backbone.Undo.js",
+  "main": "Backbone.Undo.js",
+  "version": "0.2.0",
+  "homepage": "http://backbone.undojs.com/",
+  "authors": [
+    "Oliver Sartun"
+  ],
+  "description": "An extremely simple undo manager for Backbone.js",
+  "keywords": [
+    "Backbone"
+  ],
+  "dependencies" :{
+    "underscore": "~1.4.4",
+    "backbone": "~1.0.0"
+  },
+  "ignore": [
+    "Tests",
+    ".gitignore",
+    "sample",
+    "README.md"
+  ]
+}
