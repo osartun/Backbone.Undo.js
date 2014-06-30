@@ -7,7 +7,14 @@
  * Documentation and full license available at
  * https://github.com/osartun/Backbone.Undo.js
  */
-(function (_, Backbone, undefined) {
+
+
+// AMD support
+(function (factory) {
+		typeof exports !== 'undefined'
+			? (module.exports = factory)
+			: factory(_, Backbone);
+})(function (_, Backbone, undefined) {
 
 	var core_slice = Array.prototype.slice;
 
@@ -775,4 +782,4 @@
 
 	Backbone.UndoManager = UndoManager;
 
-})(_, Backbone)
+});
