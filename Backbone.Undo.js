@@ -13,7 +13,7 @@
 (function (factory) {
 		typeof exports !== 'undefined'
 			? (module.exports = factory)
-			: actory(_, Backbone);
+			: factory(_, Backbone);
 })(function (_, Backbone, undefined) {
 
 	var core_slice = Array.prototype.slice;
