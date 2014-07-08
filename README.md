@@ -319,9 +319,9 @@ Either way you have three methods to extend or change the UndoTypes. Below the f
 
 #### addUndoType
 
-	Backbone.Undo.addUndoType(type, callbacks);
+	Backbone.UndoManager.addUndoType(type, callbacks);
 	// or
-	Backbone.Undo.addUndoType(types);
+	Backbone.UndoManager.addUndoType(types);
 
 With the `addUndoType()` method you can add or overwrite one or more UndoTypes. You can call it with the two arguments `type` and `callbacks` or with an object in which all keys are `type`s and their values `callbacks` to perform a bulk action.
 
@@ -330,7 +330,7 @@ With the `addUndoType()` method you can add or overwrite one or more UndoTypes. 
     
 *Example*: If we want to overwrite the UndoType `"reset"` with the functions defined in the example above we can do the following:
 
-    Backbone.Undo.addUndoType("reset", {
+    Backbone.UndoManager.addUndoType("reset", {
         "on": function (collection, options) {
             …
         },
@@ -344,7 +344,7 @@ With the `addUndoType()` method you can add or overwrite one or more UndoTypes. 
     
 You can also define several UndoTypes at once by passing an object to `addUndoType`
 
-	Backbone.Undo.addUndoType({
+	Backbone.UndoManager.addUndoType({
 		"reset": {
 		   "on": …
 		   "undo": …
@@ -364,19 +364,19 @@ You can also define several UndoTypes at once by passing an object to `addUndoTy
 
 #### changeUndoType
 
-	Backbone.Undo.changeUndoType(type, callbacks);
+	Backbone.UndoManager.changeUndoType(type, callbacks);
 	// or
-	Backbone.Undo.changeUndoType(types);
+	Backbone.UndoManager.changeUndoType(types);
 
 If you want to change just one or more functions of an already added or built-in UndoType `changeUndoType` is the way to go. It works just like `addUndoType` with the difference that there must already be an UndoType for the specified `type` and you don't have to pass all `callbacks` functions.
 
-	Backbone.Undo.changeUndoType("reset", {
+	Backbone.UndoManager.changeUndoType("reset", {
 	    "condition": …
 	})
 
 Pass an object to perform a bulk action:
 
-	Backbone.Undo.changeUndoType({
+	Backbone.UndoManager.changeUndoType({
 	    "reset": {
 	        "condition": …
 	    },
@@ -391,21 +391,21 @@ Pass an object to perform a bulk action:
 
 #### removeUndoType
 
-	Backbone.Undo.removeUndoType(type);
+	Backbone.UndoManager.removeUndoType(type);
 	// or
-	Backbone.Undo.removeUndoType(types);
+	Backbone.UndoManager.removeUndoType(types);
 
 Call `removeUndoType` to remove an existing UndoType. Pass the type of the UndoType you want to remove as the argument or pass an array of types if you want to remove several at once.
 
-	Backbone.Undo.removeUndoType("reset");
+	Backbone.UndoManager.removeUndoType("reset");
 	
 Pass an array to perform a bulk action:
 
-	Backbone.Undo.removeUndoType(["reset", "add", "customevent"]);
+	Backbone.UndoManager.removeUndoType(["reset", "add", "customevent"]);
 	
 If you just want to suspend an UndoType for a limited amount of time, making use of the `"condition"` property might be more adequate:
 
-	Backbone.Undo.changeUndoType("reset", {"condition": false});
+	Backbone.UndoManager.changeUndoType("reset", {"condition": false});
 
 #### Using the UndoTypes API per instance
 
