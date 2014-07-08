@@ -483,7 +483,7 @@
 	 * @return {undefined}
 	 */
 	function manipulateUndoType (manipType, undoType, fns, undoTypesInstance) {
-		// manipType
+		// manipType, passed by the calling function
 		// 0: add
 		// 1: change
 		// 2: remove
@@ -521,6 +521,7 @@
 				delete undoTypesInstance[undoType]; 
 			break;
 		}
+		return this;
 	}
 
 	/**
