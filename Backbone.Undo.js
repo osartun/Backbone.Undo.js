@@ -9,12 +9,18 @@
  */
 
 
-// AMD support
 (function (factory) {
-		typeof exports !== 'undefined'
-			? (module.exports = factory)
-			: factory(_, Backbone);
-})(function (_, Backbone, undefined) {
+	if (typeof define === "function" && define.amd) {
+		// AMD support
+		define(["underscore", "backbone"], factory);
+	} else if (typeof exports !== 'undefined') {
+		// CommonJS support
+		module.exports = factory;
+	} else {
+		// Non-modular execution
+		factory(_, Backbone);
+        }
+})(function (_, Backbone) {
 
 	var core_slice = Array.prototype.slice;
 
