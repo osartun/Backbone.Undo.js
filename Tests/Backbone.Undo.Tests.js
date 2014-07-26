@@ -272,6 +272,40 @@ test("Merging UndoManagers", 2, function () {
 	deepEqual(main.stack.at(1).toJSON().after, {"t": 2}, "The main undomanager can still write on its own stack")
 })
 
+test("Clearing all actions", function () {
+	var model = new Backbone.Model({
+		"t": 1
+	});
+
+	var UndoManager = new Backbone.UndoManager({
+		track: true,
+		register: model
+	});
+
+	model.set("t", 2);
+	model.set("t", 3);
+	model.set("t", 4);
+
+	UndoManager.clear();
+
+	UndoManager.undo();
+
+	deepEqual(model.toJSON(), {"t": 4}, "Clearing actions before undoing was successful");
+
+	model.set("t", 2);
+	model.set("t", 3);
+	model.set("t", 4);
+
+	UndoManager.undo();
+	UndoManager.undo();
+
+	UndoManager.clear();
+
+	UndoManager.redo();
+
+	deepEqual(model.toJSON(), {"t": 2}, "Clearing actions before redoing was successful");
+})
+
 /**
  * Async tests for magic condensation
  */

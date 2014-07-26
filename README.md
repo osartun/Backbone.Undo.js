@@ -204,6 +204,10 @@ This changes an UndoType only on this specific undo manager and won't affect oth
 
 This removes an UndoType only from from this specific undo manager. See the UndoTypes-API for a more thorough documentation on this function.
 
+#### clear              `undoManager.clear()`
+
+This removes all actions from the stack of actions.
+
 ***
 
 Methods you can call on the object `Backbone.UndoManager`:
