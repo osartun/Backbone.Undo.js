@@ -5,7 +5,9 @@
   "homepage": "http://backbone.undojs.com/",
   "authors": [
     "Oliver Sartun <osartun@gmail.com> (http://css3-html5.de)",
-    "Anton Shuvalov <anton_shuvalov@me.com> (http://anton-shuvalov.info)"
+    "creynders <info@creynders.be> (http://www.creynders.be)",
+    "Anton Shuvalov <anton_shuvalov@me.com> (http://anton-shuvalov.info)",
+    "Marcin Lawrowski"
   ],
   "description": "A simple Backbone undo-manager for simple apps",
   "keywords": [
