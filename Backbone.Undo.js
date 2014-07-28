@@ -747,6 +747,15 @@
 		 */
 		removeUndoType: function (type) {
 			manipulateUndoType(2, type, undefined, this.undoTypes);
+		},
+
+		/**
+		 * Removes all actions from the stack.
+		 * @return {undefined}
+		 */
+		clear: function() {
+			this.stack.reset();
+			this.stack.pointer = -1;
 		}
 	});
 
