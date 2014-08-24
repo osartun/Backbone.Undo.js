@@ -330,7 +330,7 @@ test("Undoing all actions", function () {
 })
 
 /**
- * Async tests for magic condensation
+ * Async tests for magic fusion
  */
 
 var deferQueue = [];
@@ -349,7 +349,7 @@ function flushDeferQueue() {
 	})
 }
 
-asyncTest("Magic Condensation", 4, function () {
+asyncTest("Magic Fusion", 4, function () {
 	var model = new Backbone.Model({
 		"t": 1
 	}), collection = new Backbone.Collection([{"a": 3}]),
