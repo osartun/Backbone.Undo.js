@@ -151,6 +151,10 @@ The method to undo the last action is `undo()`.
 
 Pass `true` to activate *Magic Fusion*. That way you undo the complete last set of actions that happened at once.
 
+#### undoAll		`undoManager.undoAll();`
+
+Undoes all actions ever tracked by the undo manager.
+
 #### redo		`undoManager.redo([magic])`
     
 The method to redo the latest undone action is `redo()`.
@@ -164,6 +168,10 @@ The method to redo the latest undone action is `redo()`.
         myModel.get("foo"); // => 2
 
 Like with `undo()` you can pass `true` to activate *Magic Fusion* and to redo the complete last set of actions that were undone.
+
+#### redoAll		`undoManager.redoAll();`
+
+Redoes all actions ever tracked by the undo manager.
 
 #### isAvailable        `undoManager.isAvailable(type)`
 
