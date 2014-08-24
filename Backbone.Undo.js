@@ -248,14 +248,15 @@
 
 	/**
 	 * The main undo/redo function.
-	 * 
-	 * @param  {String} 		which 	Either "undo" or "redo"
-	 * @param  {UndoManager} 	manager	The UndoManager-instance on which an "undo"/"redo"-Event is triggered afterwards
-	 * @param  {UndoStack} 		stack 	The UndoStack on which we perform
-	 * @param  {Boolean} 		magic 	If true, undoes / redoes all actions with the same magicFusionIndex
-	 * @return {undefined}
-	 */
-	function managerUndoRedo (which, manager, stack, magic) {
+	 *
+	 * @param  {String} 		which 	    Either "undo" or "redo"
+	 * @param  {UndoManager} 	manager	    The UndoManager-instance on which an "undo"/"redo"-Event is triggered afterwards
+	 * @param  {UndoStack} 		stack 	    The UndoStack on which we perform
+	 * @param  {Boolean} 		magic 	    If true, undoes / redoes all actions with the same magicFusionIndex
+     * @param  {Boolean}        everything  If true, undoes / redoes every actions that have been tracked
+     * @return {undefined}
+     */
+	function managerUndoRedo (which, manager, stack, magic, everything) {
 		if (stack.isCurrentlyUndoRedoing || 
 			(which === "undo" && stack.pointer === -1) ||
 			(which === "redo" && stack.pointer === stack.length - 1)) {
@@ -272,7 +273,11 @@
 			stack.pointer++;
 			action = stack.at(stack.pointer);
 		}
-		actions = magic ? stack.where({"magicFusionIndex": action.get("magicFusionIndex")}) : [action];
+        if (everything)
+            actions = _.clone(stack.models);
+        else
+		    actions = magic ? stack.where({"magicFusionIndex": action.get("magicFusionIndex")}) : [action];
+
 		stack.pointer += (isUndo ? -1 : 1) * (actions.length - 1);
 		while (action = isUndo ? actions.pop() : actions.shift()) {
 			// Here we're calling the Action's undo / redo method
@@ -675,6 +680,11 @@
 		undo: function (magic) {
 			managerUndoRedo("undo", this, this.stack, magic);
 		},
+
+        undoAll: function () {
+			managerUndoRedo("undo", this, this.stack, false, true);
+		},
+
 		/**
 		 * Redoes a previously undone action or a set of actions.
 		 * @param {Boolean} 	[magic] 	If true, all actions that happened basically at the same time are redone together
@@ -682,6 +692,10 @@
 		 */
 		redo: function (magic) {
 			managerUndoRedo("redo", this, this.stack, magic);
+		},
+
+        redoAll: function () {
+			managerUndoRedo("redo", this, this.stack, false, true);
 		},
 		/**
 		 * Checks if there's an action in the stack that can be undone / redone

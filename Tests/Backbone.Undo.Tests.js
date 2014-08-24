@@ -306,6 +306,29 @@ test("Clearing all actions", function () {
 	deepEqual(model.toJSON(), {"t": 2}, "Clearing actions before redoing was successful");
 })
 
+test("Undoing all actions", function () {
+	var model = new Backbone.Model({
+		"t": 1
+	});
+
+	var UndoManager = new Backbone.UndoManager({
+		track: true,
+		register: model
+	});
+
+	model.set("t", 2);
+	model.set("t", 3);
+	model.set("t", 4);
+
+	UndoManager.undoAll();
+
+	deepEqual(model.toJSON(), {"t": 1}, "Calling undoAll was successful");
+
+	UndoManager.redoAll();
+
+	deepEqual(model.toJSON(), {"t": 4}, "Calling redoAll was successful");
+})
+
 /**
  * Async tests for magic condensation
  */
