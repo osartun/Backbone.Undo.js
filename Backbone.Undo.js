@@ -253,9 +253,9 @@
 	 * @param  {UndoManager} 	manager	    The UndoManager-instance on which an "undo"/"redo"-Event is triggered afterwards
 	 * @param  {UndoStack} 		stack 	    The UndoStack on which we perform
 	 * @param  {Boolean} 		magic 	    If true, undoes / redoes all actions with the same magicFusionIndex
-     * @param  {Boolean}        everything  If true, undoes / redoes every actions that have been tracked
-     * @return {undefined}
-     */
+	 * @param  {Boolean} 		everything  If true, undoes / redoes every action that had been tracked
+	 * @return {undefined}
+	 */
 	function managerUndoRedo (which, manager, stack, magic, everything) {
 		if (stack.isCurrentlyUndoRedoing || 
 			(which === "undo" && stack.pointer === -1) ||
@@ -273,11 +273,12 @@
 			stack.pointer++;
 			action = stack.at(stack.pointer);
 		}
-        if (everything)
-            actions = _.clone(stack.models);
-        else
-		    actions = magic ? stack.where({"magicFusionIndex": action.get("magicFusionIndex")}) : [action];
-
+		if (everything) {
+			actions = _.clone(stack.models);
+		} else {
+			actions = magic ? stack.where({"magicFusionIndex": action.get("magicFusionIndex")}) : [action];
+		}
+		
 		stack.pointer += (isUndo ? -1 : 1) * (actions.length - 1);
 		while (action = isUndo ? actions.pop() : actions.shift()) {
 			// Here we're calling the Action's undo / redo method
@@ -681,7 +682,11 @@
 			managerUndoRedo("undo", this, this.stack, magic);
 		},
 
-        undoAll: function () {
+		/**
+		 * Undoes all actions ever tracked by the undo manager
+		 * @return {undefined}
+		 */
+		undoAll: function () {
 			managerUndoRedo("undo", this, this.stack, false, true);
 		},
 
@@ -694,7 +699,11 @@
 			managerUndoRedo("redo", this, this.stack, magic);
 		},
 
-        redoAll: function () {
+		/**
+		 * Redoes all actions ever tracked by the undo manager
+		 * @return {undefined}
+		 */
+		redoAll: function () {
 			managerUndoRedo("redo", this, this.stack, false, true);
 		},
 		/**
