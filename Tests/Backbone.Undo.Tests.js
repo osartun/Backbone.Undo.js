@@ -327,6 +327,28 @@ test("Undoing all actions", function () {
 	UndoManager.redoAll();
 
 	deepEqual(model.toJSON(), {"t": 4}, "Calling redoAll was successful");
+
+	UndoManager.undo();
+	UndoManager.undoAll();
+	UndoManager.undo(true);
+
+	deepEqual(model.toJSON(), {"t": 1}, "Mixing undoAll with undo doesn't cause any problems");
+	
+	UndoManager.undoAll(); // back to the stack's beginning
+
+	UndoManager.redo();
+	UndoManager.redoAll();
+	UndoManager.redo(true);
+
+	deepEqual(model.toJSON(), {"t": 4}, "Mixing redoAll with redo doesn't cause any problems");
+
+	UndoManager.undoAll();
+	UndoManager.undoAll();
+	UndoManager.redoAll();
+	UndoManager.redoAll();
+
+	deepEqual(model.toJSON(), {"t": 4}, "Calling undoAll and redoAll multiple times doesn't cause any problems");
+
 })
 
 /**
