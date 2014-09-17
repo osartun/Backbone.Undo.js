@@ -266,20 +266,19 @@
 		}
 		stack.isCurrentlyUndoRedoing = true;
 		var action, actions, isUndo = which === "undo";
-		if (isUndo) {
-			action = stack.at(stack.pointer);
-			stack.pointer--;
-		} else {
-			stack.pointer++;
-			action = stack.at(stack.pointer);
-		}
 		if (everything) {
-			actions = _.clone(stack.models);
+			// Undo / Redo all steps until you reach the stack's beginning / end
+			actions = isUndo && stack.pointer === stack.length - 1 || // If at the stack's end calling undo
+					  !isUndo && stack.pointer === -1 ? // or at the stack's beginning calling redo
+					  _.clone(stack.models) : // => Take all the models. Otherwise:
+					  core_slice.apply(stack.models, isUndo ? [0, stack.pointer] : [stack.pointer, stack.length - 1]);
 		} else {
+			// Undo / Redo only one step
+			action = stack.at(isUndo ? stack.pointer : stack.pointer + 1);
 			actions = magic ? stack.where({"magicFusionIndex": action.get("magicFusionIndex")}) : [action];
 		}
 		
-		stack.pointer += (isUndo ? -1 : 1) * (actions.length - 1);
+		stack.pointer += (isUndo ? -1 : 1) * actions.length;
 		while (action = isUndo ? actions.pop() : actions.shift()) {
 			// Here we're calling the Action's undo / redo method
 			action[which]();
