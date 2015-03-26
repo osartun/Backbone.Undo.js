@@ -639,6 +639,13 @@
 			this.stack.track = false;
 		},
 		/**
+		 * Return the state of the tracking
+		 * @return {boolean}
+		 */
+		isTracking: function () {
+			return this.get("track");
+		},
+		/**
 		 * This is the "all"-handler which is bound to registered 
 		 * objects. It creates an UndoAction from the event and adds 
 		 * it to the stack.
