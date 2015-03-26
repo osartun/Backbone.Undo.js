@@ -52,9 +52,13 @@ test("Start and stop tracking", function () {
 	model.set("hello", "world");
 	collection.add({"e": "f"});
 
-	strictEqual(UndoManager.stack.length, before, "Actions weren't added to the stack, because tracking hasn't strated yet");
+	strictEqual(UndoManager.stack.length, before, "Actions weren't added to the stack, because tracking hasn't started yet");
+
+	ok(!UndoManager.isTracking(), "Tracking has not started yet");
 
 	UndoManager.startTracking();
+
+	ok(UndoManager.isTracking(), "Tracking has now started");
 
 	model.set("hello", "you");
 	collection.remove(collection.last());
