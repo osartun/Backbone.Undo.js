@@ -657,6 +657,16 @@
 			addToStack(this.stack, type, slice(arguments, 1), this.undoTypes);
 		},
 		/**
+		 * This function allow us to clear the stack in case we want to
+		 * remove all the undo/redo available
+		 * @return {undefined}
+		 */
+		resetStack: function () {
+			this.stack = new UndoStack;
+			this.stack.setMaxLength(this.get("maximumStackLength"));
+			this.stack.track = this.get('track');
+		},
+		/**
 		 * Registers one or more objects to track their changes.
 		 * @param {...Object} 	obj 	The object or objects of which changes should be tracked
 		 * @return {undefined}
