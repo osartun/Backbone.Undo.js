@@ -1,5 +1,6 @@
 {
   "name": "Backbone.Undo.js",
+  "version": "0.2.5",
   "main": "Backbone.Undo.js",
   "license": "MIT license",
   "homepage": "http://backbone.undojs.com/",
@@ -14,8 +15,8 @@
     "Backbone", "undo"
   ],
   "dependencies" :{
-    "underscore": "~1.4.4",
-    "backbone": "~1.0.0"
+    "underscore": "1.4.4 - 1.8.3",
+    "backbone": "1.0.0 - 1.2.1"
   },
   "ignore": [
     "Tests",
