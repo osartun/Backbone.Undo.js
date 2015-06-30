@@ -15,9 +15,10 @@
 		define(["underscore", "backbone"], factory);
 	} else if (typeof exports !== 'undefined') {
 		// CommonJS support
-		var _ = require("underscore");
-		var Backbone = require("backbone");
-		module.exports = factory(_, Backbone);
+		module.exports = factory(
+			require("underscore"),
+			require("backbone")
+		);
 	} else {
 		// Non-modular execution
 		factory(_, Backbone);
