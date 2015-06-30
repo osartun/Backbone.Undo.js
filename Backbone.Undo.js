@@ -15,7 +15,9 @@
 		define(["underscore", "backbone"], factory);
 	} else if (typeof exports !== 'undefined') {
 		// CommonJS support
-		module.exports = factory;
+		var _ = require("underscore");
+		var Backbone = require("backbone");
+		module.exports = factory(_, Backbone);
 	} else {
 		// Non-modular execution
 		factory(_, Backbone);
@@ -825,6 +827,6 @@
 		}
 	})
 
-	Backbone.UndoManager = UndoManager;
+	return Backbone.UndoManager = UndoManager;
 
 });
