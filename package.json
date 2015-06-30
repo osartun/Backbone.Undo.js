@@ -14,7 +14,8 @@
   "contributors": [
     "creynders <info@creynders.be> (http://www.creynders.be)",
     "Anton Shuvalov <anton_shuvalov@me.com> (http://anton-shuvalov.info)",
-    "Marcin Lawrowski"
+    "Marcin Lawrowski",
+    "Vladislav Botvin <darkvlados@me.com>"
   ],
   "bugs": {
     "url": "https://github.com/osartun/Backbone.Undo.js/issues"
