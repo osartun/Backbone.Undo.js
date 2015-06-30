@@ -1,6 +1,6 @@
 {
   "name": "backbone-undo",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "A simple Backbone undo-manager for simple apps",
   "homepage": "http://backbone.undojs.com",
   "keywords": "backbone, undo",
