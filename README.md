@@ -210,7 +210,7 @@ This changes an UndoType only on this specific undo manager and won't affect oth
 
 #### removeUndoType     `undoManager.removeUndoType(type)`
 
-This removes an UndoType only from from this specific undo manager. See the UndoTypes-API for a more thorough documentation on this function.
+This removes an UndoType only from this specific undo manager. See the UndoTypes-API for a more thorough documentation on this function.
 
 #### clear              `undoManager.clear()`
 
