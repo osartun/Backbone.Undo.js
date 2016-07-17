@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Backbone.Undo sample for collections</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            line-height: 140%;
+        }
+
+        #centered {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-left: -180px;
+            margin-top: -120px;
+        }
+    </style>
+</head>
+<body>
+<ol id="centered">
+    <li>
+        <button id="start">startTracking</button>
+        <button id="stop">stopTracking</button>
+        <p>Changes are currently <strong id="trackingState"></strong></p>
+    </li>
+    <li>
+        <input type="text" id="input" name="value" value="foo"/>
+        <button id="set">set</button>
+        <button id="add">add</button>
+    </li>
+    <li>
+        <p>Number of undo-actions in the action-stack: <strong id="stacklength">0</strong></p>
+        <button id="undo">undo</button>
+        <button id="redo">redo</button>
+    </li>
+</ol>
+<ol>
+    <li>Click <em>startTracking</em> to start tracking changes</li>
+    <li>Enter different values into the input field and call <em>set</em> each time</li>
+    <li>Click <em>undo</em> or <em>redo</em> to undo/redo your changes</li>
+</ol>
+<div id="values"></div>
+
+<script src="jquery-1.9.1.js"></script>
+<script src="underscore.js"></script>
+<script src="backbone.js"></script>
+
+<script src="../Backbone.Undo.js"></script>
+
+<script>
+    $(function () {
+
+        //demo data
+        var values = [
+            {value: "Value 1",},
+            {value: "Value 2",},
+            {value: "Value 3",},
+            {value: "Value 4",},
+            {value: "Value 5",},
+            {value: "Value 6",},
+            {value: "Value 7",},
+            {value: "Value 8",}
+        ];
+        var Model = Backbone.Model.extend({
+            defaults: {
+                value: ""
+            }
+        });
+
+        //define directory collection
+        var Collection = Backbone.Collection.extend({
+            model: Model
+        });
+
+        var collection = {};
+
+        var View = Backbone.View.extend({
+
+            initialize: function () {
+                // If the model's value changes, update the view
+                // test it: on the console --> collection.at(1).set('value','nadir')
+                this.model.on("change:value", function (model, value, options) {
+                    if (value != this.$el.val()) {
+                        $(this.$el).find('input').val(value);  // optimization of the rendering
+                        //			this.render()  //normal call instead of line above
+                    }
+                }, this);
+
+                this.model.bind('remove', this.deleteValue, this);
+
+                this.render()
+            },
+            //add ui events
+            events: {
+                "click .set": "setValue",
+                "click button.delete": "deleteValue",
+            },
+            setValue: function (e) {
+                e.preventDefault();
+                this.model.set("value", $(this.$el).find('input').val());
+            },
+
+            //delete a model
+            deleteValue: function () {
+                //remove model
+                this.model.destroy();
+
+                //remove view from page
+                this.remove();
+
+            },
+            render: function () {
+                var v = this.model.get('value');
+                var html = '<input type="text" value="' + v + '" /><button class="set">set</button> <button class="delete">X</button>';
+                this.$el.html(html);
+                return this;
+            }
+        })
+
+
+        //define master view
+        var CollectionView = Backbone.View.extend({
+            el: $("#values"),
+
+            initialize: function () {
+                collection = this.collection = new Collection(values);
+
+                this.render();
+
+                this.collection.on("add", this.renderValue, this);
+            },
+
+            render: function () {
+                this.$el.empty()
+
+                _.each(this.collection.models, function (item) {
+                    this.renderValue(item);
+                }, this);
+            },
+
+            renderValue: function (item) {
+                var view = new View({
+                    model: item
+                });
+                this.$el.append(view.render().el);
+            },
+
+            //add ui events
+            events: {
+                "click #add": "addValue",
+            },
+
+            //add a new value
+            addValue: function (e) {
+                e.preventDefault();
+
+                var formData = {};
+                $("#centered").find("input").each(function (i, el) {
+                    if ($(el).val() !== "") {
+                        formData[el.name] = $(el).val();
+                    }
+                });
+
+                this.collection.add(new Model(formData));
+            },
+        });
+
+
+        //create instance of master view
+        var collectionView = new CollectionView();
+
+
+        // If you click the set button, the model's value is changed
+        $("#set").on("click", function () {
+            model.set("value", $("#input").val());
+            $("#stacklength").text(undoManager.stack.length);
+        })
+
+        // If you click the set button, the model's value is changed
+        $("#add").on("click", function (e) {
+            e.preventDefault();
+
+            collectionView.addValue(e);
+            $("#input").val("foo " + Math.round(Math.random() * 100));
+
+        })
+
+        // Now: The undo/redo part
+
+        var undoManager = new Backbone.UndoManager;
+        undoManager.register(collection);
+
+        $("#start").on("click", function () {
+            undoManager.startTracking();
+            $("#trackingState").text("tracked");
+        }).click();
+
+        $("#stop").on("click", function () {
+            undoManager.stopTracking();
+            $("#trackingState").text("not tracked");
+        })
+
+        $("#undo").on("click", function () {
+            undoManager.undo();
+            //when you undo a collection, you force to rerender to restore the same order
+            //undoManager restores in the right position, but in the dom it will be appended
+            collectionView.render()
+        })
+
+        $("#redo").on("click", function () {
+            undoManager.redo();
+        })
+
+    })
+</script>
+</body>
+</html>
