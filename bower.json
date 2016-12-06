@@ -1,6 +1,6 @@
 {
   "name": "Backbone.Undo.js",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "main": "Backbone.Undo.js",
   "license": "MIT license",
   "homepage": "http://backbone.undojs.com/",
