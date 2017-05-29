@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Backbone.Undo.js — Demo</title>
+	<link rel="stylesheet" href="../css/demo.css">
+</head>
+<body>
+	<div id="container">
+		<div class="undo-redo-buttons">
+			<button class="undo-button" title="Undo">&#x293A;</button>
+			<button class="redo-button" title="Redo">&#x293B;</button>
+			<button class="reload-button" title="Reload this demo">&#x21BB;</button>
+		</div>
+		<div class="demo-container">
+			<div class="demo-tags-container">
+				<script type="text/x-template" id="template-demo-tags-tag">
+				<% _.each(list, function(data) { %>
+				<div class="demo-tags-tag">
+					<div class="demo-tags-delete">&times;</div>
+					<span class="demo-tags-tag-text"><%= data.tag %></span>
+				</div>
+				<% }); %>
+				</script>
+			</div>
+			<div class="demo-tags-taginput">
+				<input type="text" class="demo-tags-input" placeholder="Seperate tags by comma" />
+				<input type="submit" class="demo-tags-submit" value="&#x2192;" />
+			</div>
+		</div>
+	</div>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script>window.jQuery || document.write("<script src='../js/jquery.min.js'>\x3C/script>")</script>
+	<script>
+		(function ($, _) {
+			$.fn.disable = function () { return this.attr("disabled", "disabled"); }
+			$.fn.enable = function () { return this.removeAttr("disabled"); }
+			$.fn.isDisabled = function () { return this.attr("disabled") === "disabled"; }
+		})(window.jQuery, window._);
+	</script>
+	<script src="../js/underscore.js"></script>
+	<script src="../js/backbone.js"></script>
+	<script src="../js/Backbone.Undo.js"></script>
+
+	<script src="../js/demo-tags.js"></script>
+	<script>
+		(function ($, Backbone, _) {
+			var undoManager = new Backbone.UndoManager({
+				track: true,
+				register: window.demoTagList
+			});
+
+			/**
+			 * Undobuttons
+			 */
+
+			var undoButton = $(".undo-button"),
+			redoButton = $(".redo-button");
+
+			undoManager.on("all", function (type) {
+				switch (type) {
+					case "undo":
+						if (!undoManager.isAvailable("undo") && !undoButton.isDisabled()) {
+							undoButton.disable();
+						}
+						if (undoManager.isAvailable("redo") && redoButton.isDisabled()) {
+							redoButton.enable();
+						}
+					break;
+					case "redo":
+						if (!undoManager.isAvailable("redo") && !redoButton.isDisabled()) {
+							redoButton.disable();
+						}
+						if (undoManager.isAvailable("undo") && undoButton.isDisabled()) {
+							undoButton.enable();
+						}
+					break;
+				}
+			})
+			undoManager.trigger("undo redo");
+
+			undoManager.stack.on("add", function () {
+				if (undoManager.isAvailable("undo")) {
+					undoButton.enable();
+				}
+				if (!undoManager.isAvailable("redo")) {
+					redoButton.disable();
+				}
+			})
+
+			undoButton.click(function () {
+				undoManager.undo(true); // Magic Condensation is activated
+			})
+			redoButton.click(function () {
+				undoManager.redo(true); // Magic Condensation is activated
+			})
+
+			$(".reload-button").click(function () {
+				window.location.reload();
+			})
+		})(window.jQuery, window.Backbone, window._);
+	</script>
+</body>
+</html>

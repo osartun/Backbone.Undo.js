@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>View Source — Demo Textarea</title>
+	<link rel="stylesheet" href="../google-code-prettify/prettify.css">
+	<style>
+		pre.prettyprint {
+			padding: 10px 15px;
+		}
+	</style>
+</head>
+<body>
+	<a href="../demos/demo-textarea.html">Open file</a>
+	<pre class="prettyprint"><code>&lt;body&gt;<br/>	&lt;div id=&quot;container&quot;&gt;<br/>		&lt;div class=&quot;undo-redo-buttons&quot;&gt;<br/>			&lt;button class=&quot;undo-button&quot; title=&quot;Undo&quot;&gt;&amp;#x293A;&lt;/button&gt;<br/>			&lt;button class=&quot;redo-button&quot; title=&quot;Redo&quot;&gt;&amp;#x293B;&lt;/button&gt;<br/>			&lt;button class=&quot;reload-button&quot; title=&quot;Reload this demo&quot;&gt;&amp;#x21BB;&lt;/button&gt;<br/>		&lt;/div&gt;<br/>		&lt;div class=&quot;demo-container&quot;&gt;<br/>			&lt;!-- This is the object of interest --&gt;<br/>			&lt;textarea name=&quot;demo-textarea&quot; id=&quot;demo-textarea&quot; cols=&quot;48&quot; rows=&quot;4&quot;&gt;&lt;/textarea&gt;<br/>		&lt;/div&gt;<br/>	&lt;/div&gt;<br/><br/>	&lt;script src=&quot;https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js&quot;&gt;&lt;/script&gt;<br/>	&lt;script&gt;window.jQuery || document.write(&quot;&lt;script src='../js/jquery.min.js'&gt;\x3C/script&gt;&quot;)&lt;/script&gt;<br/>	&lt;script src=&quot;../js/underscore.js&quot;&gt;&lt;/script&gt;<br/>	&lt;script src=&quot;../js/backbone.js&quot;&gt;&lt;/script&gt;<br/>	&lt;script src=&quot;../js/Backbone.Undo.js&quot;&gt;&lt;/script&gt;<br/><br/>	&lt;script src=&quot;../js/demo-textarea.js&quot;&gt;&lt;/script&gt;<br/>	&lt;script&gt;<br/>		(function ($, Backbone, _) {<br/>			var undoManager = new Backbone.UndoManager({<br/>				track: true,<br/>				register: window.demoTextarea<br/>			});<br/>			$(&quot;.undo-button&quot;).click(function () {<br/>				undoManager.undo();<br/>			});<br/>			$(&quot;.redo-button&quot;).click(function () {<br/>				undoManager.redo();<br/>			});<br/>			<br/>			$(&quot;.reload-button&quot;).click(function () {<br/>				window.location.reload();<br/>			});<br/>		})(window.jQuery, window.Backbone, window._);<br/>	&lt;/script&gt;<br/>&lt;/body&gt;</code></pre>
+	<script src="../google-code-prettify/prettify.js"></script>
+	<script>
+		prettyPrint();
+	</script>
+</body>
+</html>

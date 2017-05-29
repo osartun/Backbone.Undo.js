@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Backbone.Undo.js — Demo</title>
+	<link rel="stylesheet" href="../css/demo.css">
+</head>
+<body>
+	<div id="container">
+		<div class="undo-redo-buttons">
+			<button class="undo-button" title="Undo">&#x293A;</button>
+			<button class="redo-button" title="Redo">&#x293B;</button>
+			<button class="reload-button" title="Reload this demo">&#x21BB;</button>
+		</div>
+		<div class="demo-container">
+			<div class="demo-editor-canvas">
+			<script type="text/x-template" id="template-demo-editor-area">
+				<div class="demo-editor-area" id="demo-editor-area-<%= id %>" style="top:<%= Math.min(startY,endY) %>px; left:<%= Math.min(startX,endX) %>px; width:<%= Math.abs(startX - endX) %>px; height:<%= Math.abs(startY - endY) %>px; z-index: <%= zIndex %>">
+					<div class="demo-editor-area-content" style="background-color:<%= color %>;"></div>
+					<div class="demo-editor-handle demo-editor-handle-nw" data-direction="nw"></div>
+					<div class="demo-editor-handle demo-editor-handle-ne" data-direction="ne"></div>
+					<div class="demo-editor-handle demo-editor-handle-se" data-direction="se"></div>
+					<div class="demo-editor-handle demo-editor-handle-sw" data-direction="sw"></div>
+				</div>
+			</script>
+			</div>
+			<button class="demo-editor-new-area">+</button>
+		</div>
+	</div>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script>window.jQuery || document.write("<script src='../js/jquery.min.js'>\x3C/script>")</script>
+	<script>
+		(function ($, _) {
+			$.fn.disable = function () { return this.attr("disabled", "disabled"); }
+			$.fn.enable = function () { return this.removeAttr("disabled"); }
+			$.fn.isDisabled = function () { return this.attr("disabled") === "disabled"; }
+		})(window.jQuery, window._);
+	</script>
+	<script src="../js/underscore.js"></script>
+	<script src="../js/backbone.js"></script>
+	<script src="../js/Backbone.Undo.js"></script>
+
+	<script src="../js/demo-editor.js"></script>
+	<script>
+		(function ($, Backbone, _) {
+			var undoManager = new Backbone.UndoManager({
+				track: true,
+				register: window.demoEditor
+			});
+
+			Backbone.UndoManager.removeUndoType("change");
+
+
+			/**
+			 * Undobuttons
+			 */
+
+			var undoButton = $(".undo-button"),
+			redoButton = $(".redo-button");
+
+			undoManager.on("all", function (type) {
+				switch (type) {
+					case "undo":
+						if (!undoManager.isAvailable("undo") && !undoButton.isDisabled()) {
+							undoButton.disable();
+						}
+						if (undoManager.isAvailable("redo") && redoButton.isDisabled()) {
+							redoButton.enable();
+						}
+					break;
+					case "redo":
+						if (!undoManager.isAvailable("redo") && !redoButton.isDisabled()) {
+							redoButton.disable();
+						}
+						if (undoManager.isAvailable("undo") && undoButton.isDisabled()) {
+							undoButton.enable();
+						}
+					break;
+				}
+			})
+			undoManager.trigger("undo redo");
+
+			undoManager.stack.on("add", function () {
+				if (undoManager.isAvailable("undo")) {
+					undoButton.enable();
+				}
+				if (!undoManager.isAvailable("redo")) {
+					redoButton.disable();
+				}
+			})
+
+			undoButton.click(function () {
+				undoManager.undo();
+			})
+			redoButton.click(function () {
+				undoManager.redo();
+			})
+
+			$(".reload-button").click(function () {
+				window.location.reload();
+			})
+		})(window.jQuery, window.Backbone, window._);
+	</script>
+</body>
+</html>
