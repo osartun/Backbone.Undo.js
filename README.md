@@ -3,7 +3,7 @@ Backbone.Undo.js
 
 A simple Backbone undo manager for simple apps
 
-**Go to [backbone.undojs.com](http://backbone.undojs.com) for demos and a video tutorial!**
+**Go to [the repo's GitHub page](http://osartun.github.io/Backbone.Undo.js/) for demos and a video tutorial!**
 
 ***
 
