@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>View Source — Demo Textarea</title>
+	<link rel="stylesheet" href="../google-code-prettify/prettify.css">
+	<style>
+		pre.prettyprint {
+			padding: 10px 15px;
+		}
+	</style>
+</head>
+<body>
+	<a href="../js/demo-textarea.js">Open file</a>
+	<pre class="prettyprint"><code>(function ($, _, Backbone) {
+	var TextModel = Backbone.Model.extend({
+		"text": ""
+	}),
+	TextView = Backbone.View.extend({
+		r_whitespaceAtTheEnd: /[!?,\s\.]+$/gi,
+		lastStore: 0,
+		minDurationBetweenStores: 1500,
+		initialize: function () {
+			this.render();
+
+			this.model.on("change", this.render, this);
+		},
+		render: function () {
+			this.$el.val(this.model.get("text"));
+		},
+		store: function () {
+			if ($.now() - this.lastStore > this.minDurationBetweenStores && this.r_whitespaceAtTheEnd.test(this.$el.val())) {
+				this.model.set("text", this.$el.val());
+				this.lastStore = $.now();
+			}
+		},
+		events: {
+			"keyup": "store",
+			"blur": "store"
+		}
+	});
+
+	var textmodel = window.demoTextarea = new TextModel;
+	new TextView({
+		model: textmodel,
+		el: $("#demo-textarea")
+	})
+})(window.jQuery, window._, window.Backbone);</code></pre>
+	<script src="../google-code-prettify/prettify.js"></script>
+	<script>
+		prettyPrint();
+	</script>
+</body>
+</html>

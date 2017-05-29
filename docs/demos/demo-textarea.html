@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Backbone.Undo.js — Demo</title>
+	<link rel="stylesheet" href="../css/demo.css">
+</head>
+<body>
+	<div id="container">
+		<div class="undo-redo-buttons">
+			<button class="undo-button" title="Undo">&#x293A;</button>
+			<button class="redo-button" title="Redo">&#x293B;</button>
+			<button class="reload-button" title="Reload this demo">&#x21BB;</button>
+		</div>
+		<div class="demo-container">
+			<!-- This is the object of interest -->
+			<textarea name="demo-textarea" id="demo-textarea" cols="48" rows="4"></textarea>
+		</div>
+	</div>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script>window.jQuery || document.write("<script src='../js/jquery.min.js'>\x3C/script>")</script>
+	<script src="../js/underscore.js"></script>
+	<script src="../js/backbone.js"></script>
+	<script src="../js/Backbone.Undo.js"></script>
+
+	<script src="../js/demo-textarea.js"></script>
+	<script>
+		(function ($, Backbone, _) {
+			var undoManager = new Backbone.UndoManager({
+				track: true,
+				register: window.demoTextarea
+			});
+			$(".undo-button").click(function () {
+				undoManager.undo();
+			});
+			$(".redo-button").click(function () {
+				undoManager.redo();
+			});
+
+			$(".reload-button").click(function () {
+				window.location.reload();
+			});
+		})(window.jQuery, window.Backbone, window._);
+	</script>
+</body>
+</html>
