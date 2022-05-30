@@ -69,7 +69,7 @@
 		if (!_.isArray(keys)) {
 			keys = slice(arguments, 1);
 		}
-		return _.all(keys, function (key) {
+		return _.every(keys, function (key) {
 			return key in obj;
 		});
 	}
@@ -154,7 +154,7 @@
 			// This is where we get a performance boost 
 			// by using the two different ways of storing 
 			// objects.
-			return obj && obj.cid ? this.registeredObjects[obj.cid] : _.contains(this.registeredObjects, obj);
+			return obj && obj.cid ? this.registeredObjects[obj.cid] : _.includes(this.registeredObjects, obj);
 		},
 		/**
 		 * Registers an object in this ObjectRegistry.
@@ -516,7 +516,7 @@
 
 		switch (manipType) {
 			case 0: // add
-				if (hasKeys(fns, "undo", "redo", "on") && _.all(_.pick(fns, "undo", "redo", "on"), _.isFunction)) {
+				if (hasKeys(fns, "undo", "redo", "on") && _.every(_.pick(fns, "undo", "redo", "on"), _.isFunction)) {
 					undoTypesInstance[undoType] = fns;
 				} 
 			break;
